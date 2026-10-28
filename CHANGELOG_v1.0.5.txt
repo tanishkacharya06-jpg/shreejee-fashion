@@ -1,0 +1,16 @@
+SHREEJEE FASHION v1.0.5
+========================
+
+- Added a cart "Review your order" link anchored to the order summary, plus a clear Continue Shopping action.
+- Removed checkout controls for admin accounts and explicitly blocked admin checkout endpoints server-side.
+- Added location-based COD delivery-fee workflow: admin sets and sends a quote, customer accepts or declines it, and preparation is enabled only after acceptance.
+- COD delivery charges are stored separately, included in the order total, shown to the customer, and sent via notification.
+- Changed order QR payloads to open the admin order route; QR scans now redirect directly to the order workflow anchor. QR code generation uses a higher-contrast PNG and exposes an actionable error when it cannot be generated. Set PUBLIC_BASE_URL only if the request host does not reflect the public tunnel/domain.
+- Admin order workflow shows product images where an uploaded primary image exists.
+- Grouped Admin Dashboard, Coupons, Returns & Exchanges, Password Resets, Website Editor, Notifications and QR Scanner under one Admin menu.
+- Removed customer-facing phrasing that described completed orders as locked.
+
+UPGRADE
+- Back up store.db and static/uploads/ before installing this release.
+- Database columns for COD delivery charges are added automatically at startup; existing orders are retained.
+- COD fees are entered by the admin after reviewing the address; there is no automatic geocoding or fixed location pricing.

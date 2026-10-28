@@ -1,0 +1,154 @@
+{% from '_icons.html' import user_icon %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="{{ site_config.primary_color }}">
+  <script>try{if(localStorage.getItem("sf_taskbar_hidden")==="1")document.documentElement.classList.add("sf-taskbar-hidden")}catch(_){}</script>
+  <meta name="description" content="{{ site_config.site_name }} — family fashion for boys, girls and kids since {{ store.since }}.">
+  <title>{% block title %}{{ store.name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.14">
+  <style>:root{ {{ site_css_vars|safe }} } body{font-size:var(--base-font-size,14px);{% if site_config.background_mode == 'soft-gradient' %}background:linear-gradient(135deg,{{ site_config.page_background }},{{ site_config.gradient_end }}) fixed;{% endif %}} .btn{border-radius:var(--button-radius,3px)} .panel,.product-card,.checkout-card,.last-order-strip{border-radius:var(--card-radius,0px)} .product-grid{gap:var(--card-gap,22px)} .hero h1{font-size:calc(clamp(49px,5.4vw,78px)*var(--heading-scale,1))} .hero-art{ {% if site_config.hero_image %}background-image:url('{{ url_for('static', filename='uploads/' + site_config.hero_image) }}');background-size:cover;background-position:center;{% endif %} }</style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='layouts.css') }}?v=1.0.14">
+  {% block head %}{% endblock %}
+</head>
+<body class="button-style-{{ site_config.button_style }}{{ ' no-taskbar' if hide_taskbar }}" data-ui="{{ ui_layout }}" data-ui-chosen="{{ 1 if ui_chosen else 0 }}" data-menu-pos="{{ menu_pos }}" data-menu-side="{{ menu_side }}" data-menu-default="{{ ui_layouts[ui_layout].menu }}" data-settings-url="{{ url_for('api_site_settings') }}" data-user-role="{{ current_user['role'] if current_user else 'guest' }}" data-admin-order-snapshot="{{ admin_order_snapshot|default('') }}">
+  {% if show_announcement %}
+  <details class="announcement" id="siteAnnouncement"{% if not announcement %} hidden{% endif %}{% if announcement|length <= 96 %} data-short{% endif %}><summary><span class="announcement-text" data-site-key="announcement">{{ announcement|truncate(96, True, '…', 0) }}</span><span class="announcement-hint">Click to read more ▾</span></summary><div class="announcement-expanded" data-site-key="announcement">{{ announcement }}</div></details>
+  {% endif %}
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('home') }}" aria-label="{{ store.name }} – go to home page" title="Go to home page">
+      {% if site_config.logo_filename %}<span class="brand-mark brand-image"><img src="{{ url_for('static', filename='uploads/' + site_config.logo_filename) }}" alt="{{ store.name }} logo"></span>{% else %}<span class="brand-mark" data-site-key="logo_text">{{ site_config.logo_text }}</span>{% endif %}
+      <span class="brand-name"><span data-site-key="site_name">{{ store.name }}</span><b>FASHION</b><small>STYLE FOR EVERY GENERATION · EST. <span data-site-key="since">{{ store.since }}</span></small></span>
+    </a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="{{ site_config.nav_shop_url }}" data-site-key="nav_shop" data-site-href-key="nav_shop_url">{{ site_config.nav_shop }}</a><a href="{{ site_config.nav_buy_url }}" data-site-key="nav_buy" data-site-href-key="nav_buy_url">{{ site_config.nav_buy }}</a><a href="{{ site_config.nav_rent_url }}" data-site-key="nav_rent" data-site-href-key="nav_rent_url">{{ site_config.nav_rent }}</a>
+      {% if not current_user or current_user['role']!='admin' %}
+      <div class="nav-dropdown" data-nav-dropdown>
+        <button type="button" class="nav-dropdown-toggle" data-nav-dropdown-toggle aria-haspopup="true" aria-expanded="false">{{ selected_category if selected_category else 'Selected category' }} <span aria-hidden="true">⌄</span></button>
+        <div class="nav-dropdown-menu category-nav-menu" role="menu" aria-label="Select a category">
+          {% for item in menu_categories %}
+            {% if item.type == 'group' %}
+              <div class="category-nav-group" data-category-submenu>
+                <button type="button" class="category-nav-group-toggle" data-category-submenu-toggle aria-expanded="false">{{ item.label }} <span aria-hidden="true">›</span></button>
+                <div class="category-nav-submenu" aria-label="{{ item.label }} categories">
+                  {% for child in item.children %}<a role="menuitem" href="{{ url_for('home', category=child.category) }}#catalog">{{ child.label }}</a>{% endfor %}
+                </div>
+              </div>
+            {% elif item.type == 'coming_soon' %}
+              <span class="category-coming-soon" aria-disabled="true"><strong>{{ item.label }}</strong><small>Coming soon</small></span>
+            {% else %}
+              <a role="menuitem" href="{{ url_for('home', category=item.category) }}#catalog">{{ item.label }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="nav-dropdown account-dropdown" data-nav-dropdown>
+        <button type="button" class="nav-dropdown-toggle" data-nav-dropdown-toggle aria-haspopup="true" aria-expanded="false">My account <span aria-hidden="true">⌄</span></button>
+        <div class="nav-dropdown-menu" role="menu" aria-label="Account shortcuts">
+          {% if current_user and current_user['role']=='customer' %}<a role="menuitem" href="{{ url_for('account') }}">My account &amp; orders</a><a role="menuitem" href="{{ url_for('wishlist') }}">Saved items{% if wishlist_ids %} ({{ wishlist_ids|length }}){% endif %}</a><a role="menuitem" href="{{ url_for('account') }}#returns">Returns &amp; exchanges</a><a role="menuitem" href="{{ url_for('notifications') }}">Notifications{% if unread_notifications %} <span class="dropdown-count">{{ unread_notifications }}</span>{% endif %}</a>{% else %}<a role="menuitem" href="{{ url_for('login') }}">Log in / Create account</a>{% endif %}
+          <a role="menuitem" href="{{ url_for('cart') }}">Cart <span class="dropdown-count">{{ cart_count }}</span></a>
+        </div>
+      </div>
+      {% if current_user %}<a href="{{ url_for('logout') }}">Log out</a>{% endif %}
+      {% else %}
+      <div class="nav-dropdown" data-nav-dropdown>
+        <button type="button" class="nav-dropdown-toggle" data-nav-dropdown-toggle aria-haspopup="true" aria-expanded="false">Selected category <span aria-hidden="true">⌄</span></button>
+        <div class="nav-dropdown-menu category-nav-menu" role="menu" aria-label="Admin category preview">
+          {% for item in menu_categories %}
+            {% if item.type == 'group' %}
+              <div class="category-nav-group" data-category-submenu><button type="button" class="category-nav-group-toggle" data-category-submenu-toggle aria-expanded="false">{{ item.label }} <span aria-hidden="true">›</span></button><div class="category-nav-submenu" aria-label="{{ item.label }} categories">{% for child in item.children %}<a role="menuitem" href="{{ url_for('home', category=child.category) }}#catalog">{{ child.label }}</a>{% endfor %}</div></div>
+            {% else %}<a role="menuitem" href="{{ url_for('home', category=item.category) }}#catalog">{{ item.label }}{% if item.type == 'coming_soon' %} · Admin preview{% endif %}</a>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if current_user and current_user['role']=='admin' %}<div class="nav-dropdown admin-account-dropdown" data-nav-dropdown><button type="button" class="nav-dropdown-toggle" data-nav-dropdown-toggle aria-haspopup="true" aria-expanded="false">My account <span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu" role="menu" aria-label="Admin account"><a role="menuitem" href="{{ url_for('account') }}">My account &amp; profile</a><a role="menuitem" href="{{ url_for('notifications') }}">Notifications{% if unread_notifications %} ({{ unread_notifications }}){% endif %}</a></div></div><div class="nav-dropdown admin-nav-dropdown" data-nav-dropdown><button type="button" class="nav-dropdown-toggle" data-nav-dropdown-toggle aria-haspopup="true" aria-expanded="false">Admin <span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu" role="menu" aria-label="Admin tools"><a role="menuitem" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a><a role="menuitem" href="{{ url_for('admin_coupons') }}">Coupons</a><a role="menuitem" href="{{ url_for('admin_returns') }}">Returns &amp; Exchanges{% if pending_returns %} ({{ pending_returns }}){% endif %}</a><a role="menuitem" href="{{ url_for('admin_password_resets') }}">Password Resets{% if pending_resets %} ({{ pending_resets }}){% endif %}</a><a role="menuitem" href="{{ url_for('admin_delivery') }}">Delivery PIN codes</a><a role="menuitem" href="{{ url_for('admin_website_editor') }}">Website Editor</a><a role="menuitem" href="{{ url_for('admin_scan') }}">Scan Order QR</a></div></div><a href="{{ url_for('logout') }}">Log out</a>{% endif %}
+      {% endif %}
+      <a class="ui-open-btn" href="{{ url_for('appearance_settings') }}" title="Choose how the store looks">◐ Look</a>
+    </nav>
+    {% if not current_user or current_user['role'] != 'admin' %}<a class="header-cart" href="{{ url_for('cart') }}" aria-label="Open cart"><svg class="cart-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false"><path d="M5 7h5l4.4 22.2a4 4 0 0 0 3.9 3.2h16.9a4 4 0 0 0 3.8-2.8L43 15H13" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 20h23M18 26h19M22 16l1.2 13M32 16l-1.1 13" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="20" cy="39" r="3.2" fill="currentColor"/><circle cx="34" cy="39" r="3.2" fill="currentColor"/></svg><b class="header-cart-label">Cart</b><b class="header-cart-badge" data-cart-badge {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</b></a>{% endif %}
+    <button class="app-drawer-toggle" id="appDrawerToggle" type="button" aria-label="Open menu" aria-controls="appDrawer" aria-expanded="false"><span class="menu-ico" aria-hidden="true">☰</span><span class="menu-label">Menu</span></button>
+  </header>
+  <div class="app-drawer-overlay" id="appDrawerOverlay" hidden>
+    <button class="app-drawer-scrim" type="button" data-close-app-drawer aria-label="Close menu"></button>
+    <aside class="app-drawer" id="appDrawer" role="dialog" aria-modal="true" aria-labelledby="appDrawerTitle" tabindex="-1">
+      <div class="app-drawer-head"><div><div class="eyebrow"><span class="eyebrow-line"></span> SHREEJEE FASHION</div><h2 id="appDrawerTitle">Explore <em>menu.</em></h2></div><button type="button" class="app-drawer-close" data-close-app-drawer aria-label="Close menu">×</button></div>
+      <nav class="app-drawer-nav" aria-label="App drawer navigation">
+        <a href="{{ url_for('home') }}"><span class="drawer-icon">⌂</span><span><strong>Home</strong><small>Featured styles and new arrivals</small></span><b>→</b></a>
+        <a href="{{ url_for('home', view='buy') }}"><span class="drawer-icon">↗</span><span><strong>Buy</strong><small>Styles to own</small></span><b>→</b></a>
+        <a href="{{ url_for('home', view='rent') }}"><span class="drawer-icon">◷</span><span><strong>Rent</strong><small>Occasion and rental styles</small></span><b>→</b></a>
+        <details class="drawer-group">
+          <summary><span class="drawer-icon">☷</span><span><strong>Selected category</strong><small>Choose a collection to browse</small></span><b aria-hidden="true">⌄</b></summary>
+          <div class="drawer-subnav drawer-category-list">
+            {% for item in menu_categories %}
+              {% if item.type == 'group' %}
+                <details class="drawer-category-group">
+                  <summary><span class="drawer-sub-icon">✿</span><span><strong>{{ item.label }}</strong><small>{{ item.children|length }} categories</small></span><b aria-hidden="true">⌄</b></summary>
+                  <div class="drawer-category-children">
+                    {% for child in item.children %}<a href="{{ url_for('home', category=child.category) }}#catalog"><span class="drawer-sub-icon">↗</span><span><strong>{{ child.label }}</strong><small>Browse {{ child.label }}</small></span><b>→</b></a>{% endfor %}
+                  </div>
+                </details>
+              {% elif item.type == 'coming_soon' and (not current_user or current_user['role'] != 'admin') %}
+                <div class="drawer-category-soon" aria-disabled="true"><span class="drawer-sub-icon">◷</span><span><strong>{{ item.label }}</strong><small>Coming soon</small></span><b class="coming-soon-pill">Soon</b></div>
+              {% else %}
+                <a href="{{ url_for('home', category=item.category) }}#catalog"><span class="drawer-sub-icon">♧</span><span><strong>{{ item.label }}</strong><small>{% if item.type == 'coming_soon' %}Admin preview{% else %}Browse this category{% endif %}</small></span><b>→</b></a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </details>
+        <details class="drawer-group account-drawer-group">
+          <summary><span class="drawer-icon">{{ user_icon() }}</span><span><strong>My account</strong><small>{% if current_user and current_user['role']=='admin' %}Admin profile and notifications{% else %}Account, saved items and cart{% endif %}</small></span><b aria-hidden="true">⌄</b></summary>
+          <div class="drawer-subnav">
+            {% if current_user and current_user['role']=='admin' %}
+              <a href="{{ url_for('account') }}"><span class="drawer-sub-icon">{{ user_icon() }}</span><span><strong>My account &amp; profile</strong><small>View your admin account details</small></span><b>→</b></a>
+              <a href="{{ url_for('notifications') }}"><span class="drawer-sub-icon">✦</span><span><strong>Notifications</strong><small>{{ unread_notifications }} unread</small></span><b>→</b></a>
+            {% elif current_user and current_user['role']=='customer' %}
+              <a href="{{ url_for('account') }}"><span class="drawer-sub-icon">{{ user_icon() }}</span><span><strong>My account &amp; orders</strong><small>Order history and saved details</small></span><b>→</b></a><a href="{{ url_for('wishlist') }}"><span class="drawer-sub-icon">♡</span><span><strong>Saved items</strong><small><span data-wishlist-count-text>{{ wishlist_ids|length }}</span> saved for later</small></span><b>→</b></a><a href="{{ url_for('account') }}#returns"><span class="drawer-sub-icon">↺</span><span><strong>Returns &amp; exchanges</strong><small>Request or track a return</small></span><b>→</b></a><a href="{{ url_for('notifications') }}"><span class="drawer-sub-icon">✦</span><span><strong>Notifications</strong><small>{{ unread_notifications }} unread</small></span><b>→</b></a><a href="{{ url_for('cart') }}"><span class="drawer-sub-icon">▣</span><span><strong>Cart</strong><small>{{ cart_count }} item(s) in your cart</small></span><b>→</b></a>
+            {% else %}
+              <a href="{{ url_for('login') }}"><span class="drawer-sub-icon">{{ user_icon() }}</span><span><strong>Log in / Create account</strong><small>Access your account</small></span><b>→</b></a><a href="{{ url_for('cart') }}"><span class="drawer-sub-icon">▣</span><span><strong>Cart</strong><small>{{ cart_count }} item(s) in your cart</small></span><b>→</b></a>
+            {% endif %}
+          </div>
+        </details>
+        {% if current_user %}
+          {% if current_user['role']=='admin' %}<details class="drawer-group admin-drawer-group"><summary><span class="drawer-icon">⌘</span><span><strong>Admin</strong><small>Dashboard and store controls</small></span><b aria-hidden="true">⌄</b></summary><div class="drawer-subnav"><a href="{{ url_for('admin_dashboard') }}"><span class="drawer-sub-icon">⌘</span><span><strong>Admin Dashboard</strong><small>Orders and store overview</small></span><b>→</b></a><a href="{{ url_for('admin_coupons') }}"><span class="drawer-sub-icon">％</span><span><strong>Coupons</strong><small>Create and manage codes</small></span><b>→</b></a><a href="{{ url_for('admin_returns') }}"><span class="drawer-sub-icon">↺</span><span><strong>Returns &amp; Exchanges</strong><small>{{ pending_returns }} awaiting review</small></span><b>→</b></a><a href="{{ url_for('admin_password_resets') }}"><span class="drawer-sub-icon">⚿</span><span><strong>Password Resets</strong><small>{{ pending_resets }} awaiting review</small></span><b>→</b></a><a href="{{ url_for('admin_delivery') }}"><span class="drawer-sub-icon">⌖</span><span><strong>Delivery PIN codes</strong><small>Where you deliver</small></span><b>→</b></a><a href="{{ url_for('admin_website_editor') }}"><span class="drawer-sub-icon">✎</span><span><strong>Website Editor</strong><small>Customize the storefront</small></span><b>→</b></a><a href="{{ url_for('notifications') }}"><span class="drawer-sub-icon">✦</span><span><strong>Notifications</strong><small>{{ unread_notifications }} unread</small></span><b>→</b></a><a href="{{ url_for('admin_scan') }}"><span class="drawer-sub-icon">▦</span><span><strong>Scan Order QR</strong><small>Open order workflow</small></span><b>→</b></a></div></details>{% endif %}
+        {% endif %}
+        {% if current_user %}
+          <a class="drawer-logout" href="{{ url_for('logout') }}"><span class="drawer-icon" aria-hidden="true">↪</span><span><strong>Log out</strong><small>Sign out of {{ 'your admin account' if current_user['role']=='admin' else 'your account' }}</small></span><b aria-hidden="true">→</b></a>
+        {% endif %}
+        <a class="drawer-look" href="{{ url_for('appearance_settings') }}"><span class="drawer-icon">◐</span><span><strong>Choose how the store looks</strong><small>Current style: {{ ui_layouts[ui_layout].name }} · 6 looks to explore</small></span><b>→</b></a>
+        <a href="{{ url_for('about') }}"><span class="drawer-icon">♡</span><span><strong>About the store</strong><small>Our story and contact details</small></span><b>→</b></a>
+      </nav>
+      <div class="app-drawer-legal"><div class="eyebrow">HELP &amp; LEGAL</div><a href="{{ url_for('privacy') }}">Privacy policy</a><a href="{{ url_for('terms') }}">Terms &amp; conditions</a><a href="{{ url_for('cookies') }}">Cookies &amp; tracking</a></div>
+    </aside>
+  </div>
+  <main class="page-wrap">
+    {% if show_back %}<div class="back-row"><a class="back-btn" href="{{ back_fallback }}" data-back><span aria-hidden="true">←</span> Back</a></div>{% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack" role="region" aria-label="Notifications">{% for category, message in messages %}<div class="flash flash-{{ category }}" role="{{ 'alert' if category in ('danger','warning') else 'status' }}"><span class="flash-icon" aria-hidden="true">{{ '✓' if category=='success' else ('!' if category=='danger' else ('▲' if category=='warning' else 'i')) }}</span><span class="flash-text">{{ message }}</span><button type="button" class="flash-close" aria-label="Dismiss">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <div id="goToCartBar" class="go-to-cart-bar" hidden role="status" aria-live="polite"><div><strong>Added to your cart</strong><small><span data-go-cart-count>0</span> item(s) in cart</small></div><a class="btn btn-dark" href="{{ url_for('cart') }}">Go To Cart →</a><button type="button" id="hideGoToCartBar" class="go-cart-hide" aria-label="Hide Go To Cart bar" title="Hide this bar">×</button></div>
+  <footer class="site-footer">
+    <div class="footer-top"><div><a class="footer-brand" href="{{ url_for('home') }}" data-site-key="site_name">{{ store.name }}</a><p data-site-key="footer_text">{{ site_config.footer_text }}</p></div><div><strong>Visit our store</strong><p data-site-key="address">{{ store.address }}</p><p>Owner: <span data-site-key="owner">{{ store.owner }}</span></p><p>Hours: <span data-site-key="hours">{{ store.hours }}</span></p>{% if store.phone %}<p>Contact: <a data-site-key="phone" data-site-href-key="phone" href="tel:{{ store.phone }}">{{ store.phone }}</a></p>{% endif %}<p>WhatsApp: <a href="{{ wa_link('Hello Shreejee Fashion!') }}" target="_blank" rel="noopener">Chat with the owner</a></p></div><div><strong>Customer information</strong><a href="{{ url_for('terms') }}">Terms &amp; conditions</a><a href="{{ url_for('privacy') }}">Privacy policy</a><a href="{{ url_for('cookies') }}">Cookies &amp; tracking</a></div></div>
+    <div class="footer-bottom"><span>© <span data-site-key="since">{{ store.since }}</span>–2026 <span data-site-key="site_name">{{ store.name }}</span></span><span>Secure checkout · Customer-first service</span></div>
+  </footer>
+  {% if not hide_taskbar %}
+  <nav class="ui-bottombar" aria-label="{{ 'Admin quick actions' if current_user and current_user['role']=='admin' else 'Quick buttons' }}" data-taskbar>
+    {% if current_user and current_user['role']=='admin' %}
+      <a href="{{ url_for('admin_dashboard') }}" class="{{ 'on' if request.path=='/admin' }}"><span>⌘</span><small>Dashboard</small></a>
+      <a href="{{ url_for('admin_orders') }}" class="{{ 'on' if request.path.startswith('/admin/orders') }}"><span>▤</span><small>Orders</small></a>
+      <a href="{{ url_for('admin_scan') }}" class="{{ 'on' if request.path=='/admin/scan' }}"><span>▦</span><small>Scan QR</small></a>
+      <a href="{{ url_for('notifications') }}" class="{{ 'on' if request.path.startswith('/notifications') }}"><span>✦</span><small>Alerts</small></a>
+      <a href="{{ url_for('account') }}" class="{{ 'on' if request.path=='/account' }}"><span>{{ user_icon() }}</span><small>My Account</small></a>
+    {% else %}
+      <a href="{{ url_for('home') }}" class="{{ 'on' if request.path=='/' and not request.args.get('view') and not request.args.get('category') }}"><span>⌂</span><small>Home</small></a>
+      <a href="{{ url_for('home', browse='1') }}#catalog"><span>◧</span><small>Shop</small></a>
+      {% if current_user %}<a href="{{ url_for('wishlist') }}"><span>♡</span><small>Saved</small></a>{% else %}<a href="{{ url_for('login') }}"><span>{{ user_icon() }}</span><small>Log in</small></a>{% endif %}
+      <a href="{{ url_for('cart') }}" class="ui-bb-cart" aria-label="Open cart"><svg class="cart-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false"><path d="M5 7h5l4.4 22.2a4 4 0 0 0 3.9 3.2h16.9a4 4 0 0 0 3.8-2.8L43 15H13" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 20h23M18 26h19M22 16l1.2 13M32 16l-1.1 13" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="20" cy="39" r="3.2" fill="currentColor"/><circle cx="34" cy="39" r="3.2" fill="currentColor"/></svg><small>Cart</small><b class="ui-bb-badge" data-cart-badge {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</b></a>
+      {% if current_user %}<a href="{{ url_for('account') }}"><span>{{ user_icon() }}</span><small>Account</small></a>{% endif %}
+    {% endif %}
+  </nav>
+  {% endif %}
+  <script src="{{ url_for('static', filename='app.js') }}?v=1.0.14"></script>
+  <script>try{if(window.SFApp&&SFApp.setTheme)SFApp.setTheme(document.body.dataset.ui||'classic')}catch(_){}</script>
+  {% block scripts %}{% endblock %}
+</body></html>

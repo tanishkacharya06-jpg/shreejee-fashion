@@ -1,0 +1,9 @@
+Shreejee Fashion — ONE-CLICK CLOUDFLARE (v11.0)
+
+After the one-time Python package installation, double-click app.py. It starts the local Flask store, opens the local website, and attempts to start a Cloudflare Quick Tunnel automatically. Wait for the https://....trycloudflare.com URL in the black console window. Keep the window open.
+
+Requirements: Windows, Python 3.10+, requirements installed once, internet access. If cloudflared.exe is missing, app.py attempts to download the official Cloudflare Windows binary. If blocked, install it from https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/ and try again.
+
+Quick Tunnel URLs are temporary. Before sharing publicly, change the starter admin passwords and set SHREEJEE_SECRET_KEY. No .bat file is required.
+
+COD/store-QR confirmation workflow: Admin generates an order-specific 6-digit code. The code appears on the registered customer's order page and website notifications. The customer tells this code to the admin; successful verification marks the order Confirmed. Admin must separately record payment received and physically confirm handover before marking Delivered. Delivered orders are locked. Online payments require real Razorpay credentials.

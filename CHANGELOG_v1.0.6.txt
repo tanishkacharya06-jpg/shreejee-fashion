@@ -1,0 +1,11 @@
+SHREEJEE FASHION v1.0.6
+========================
+
+- Added an admin-only “Make this the default look for the website” control on Choose how the store looks. The published default is stored in site settings and used for visitors without a saved personal preference.
+- Added a “Default storefront theme” selector in Admin > Website Editor > Appearance. Publishing the site editor applies the selected default and updates the admin preview cookie.
+- Added accessible show/hide password eye buttons to every password input, including login, registration, and password-reset forms.
+- Restored My Account to the admin header navigation and slide-out menu with links to account/profile, notifications, storefront, and logout.
+- Added safe-area-aware mobile taskbar styles to Classic, Festive Boutique, and Editorial, and tuned existing Modern, Midnight Luxe, and Fresh Pop taskbars. Content/footer bottom padding prevents the fixed taskbar covering page content.
+- Bumped static asset cache versions to v1.0.6.
+
+Validation completed: Python syntax compile; Node.js syntax check; all 32 Jinja templates parsed with the app's eta_text filter stubbed for standalone parsing; both CSS stylesheets parsed with tinycss2; feature-string checks passed. Flask is not installed in the validation environment, so full live-route and browser interaction testing was not possible.

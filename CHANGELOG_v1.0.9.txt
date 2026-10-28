@@ -1,0 +1,8 @@
+SHREEJEE FASHION v1.0.9
+========================
+
+- Added /health (GET) so you can confirm the local Flask storefront responds. Expected JSON: {"ok":true,"service":"Shreejee Fashion","version":"1.0.9"}.
+- Added an explicit HTTP 405 handler. If an internal page is opened with the wrong method, it now explains the requested path/method and the supported methods; JSON clients receive structured diagnostics.
+- Improved same-origin 404 diagnostics for API routes.
+
+Important: the Cloudflare API-style response {"success":false,"result":null,"errors":[{"code":10005,"message":"Method Not Allowed"}]} is not generated anywhere in this website source. The storefront uses cloudflared Quick Tunnel (a CLI tunnel), not the Cloudflare REST API. If that exact JSON appears while visiting a public URL, check the address bar: the correct URL printed at startup must end in .trycloudflare.com and normally open the homepage at /. If it persists on the correct public homepage, capture the address path (remove any private token/query parameters) and the terminal output so the failing upstream route can be identified.

@@ -1,0 +1,6 @@
+v1.0.11
+1. No horizontal scrolling: admin/account tables now stack into cards on phones; page-level overflow clipped.
+2. Success/error messages: floating toast with icon + colour, auto-dismiss, close button; invalid form fields show an error message; offline/online notices. JS helper: sfNotify(message, 'success'|'danger'|'warning'|'info').
+3. Logo: clearer clickable area (44px min height), focus ring, title "Go to home page".
+4. Removed unused/duplicate navigation: guest "Saved items" (only led to login), duplicate "Admin Notifications" menu item, duplicate "Join" button in the bottom dock.
+5. Mobile optimisation for all pages: 16px inputs (no iOS zoom), 44px tap targets, single-column layouts, 2-column product grid, safe-area padding.

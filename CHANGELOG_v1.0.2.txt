@@ -1,0 +1,12 @@
+Shreejee Fashion v1.0.2
+
+- Boosted generated button sound audibility and added an adjustable 0-100% intensity slider, defaulting to full intensity.
+- Added sound preview and saved volume preference in the appearance chooser.
+- Restored top-left, top-right, bottom-left, and bottom-right menu-position control in Choose how the store looks; preference is saved on the device.
+- Added admin-only Admin Studio option to the chooser. This private, standalone control room has no customer ordering UI.
+- Admin Studio shows paid lifetime income, paid order value this month, paid order count, orders this month, open orders, active products, customer accounts, low-stock count, open returns and a six-month paid-income trend chart.
+- Added read-only storefront preview using the saved draft Website Editor settings, with theme preview selection.
+- Added coupon edit and delete actions alongside activate/deactivate. Previous order records remain intact when a coupon is edited or deleted.
+- Added dedicated coupon edit page.
+
+Income metrics count orders marked Paid, Paid (UPI verified manually), Paid at store, or Paid (COD), excluding cancelled orders. This month is based on order creation date, because the schema does not maintain a separate cleared-payment timestamp.

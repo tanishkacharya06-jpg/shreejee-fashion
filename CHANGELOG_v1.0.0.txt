@@ -1,0 +1,9 @@
+Shreejee Fashion v1.0.0 — Fresh Pop menu and category release
+
+- Added browser-generated button sound effects with a persistent On/Off control in “Choose how the store looks”.
+- Set Fresh Pop’s default menu-button position to the top-left; visitors can still choose another position.
+- Rebuilt Selected category as an animated, nested menu. Women / Girl expands to Chania-choli, Lehenga Choli, Jewelry / Accessories, Lehenga and Blouse.
+- Boys / Men and Kids Wear display “Coming soon” for customers and remain openable by an administrator from the menu. Customer catalog/search results, direct product links, add-to-cart and saved-item actions are also blocked for these categories.
+- Added an admin Website Editor category-tree manager so top-level menu categories and nested subcategories can be added, edited, or removed, then saved as a draft or published.
+- Added server-side validation for menu category data and refreshed Fresh Pop menu and settings-popup styling.
+- Preserved the existing database and upload folders; the ZIP contains source files only and no customer database.

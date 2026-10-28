@@ -1,0 +1,11 @@
+Shreejee Fashion v1.0.8
+
+- Admin Dashboard, Orders, and other admin pages automatically refresh when customer orders are placed or order details change. The queue checks every 2 seconds while visible.
+- Customer-specific order pages automatically refresh when the order status, delivery fee, fee approval state, total, or update timestamp changes. My Account refreshes when an order in the history changes.
+- Delivery charges now apply to both COD and online-payment delivery orders. Admin quotes the location-based charge, the customer accepts or declines, and online orders receive the UPI QR only after accepting the updated total.
+- Added shared delivery_charge and delivery_charge_status fields with startup migration from former COD-only charge fields.
+- Product gallery accepts larger original photos (up to 32 MB each) for browser-side resizing before applying the 8 MB per-file upload cap, uses mobile-native file pickers when supported, and shows clearer timeout/error messages. Common HEIC/HEIF/AVIF phone formats are converted when the browser can decode them.
+- Product form values are preserved when validation fails; the page explains if a selected phone-photo format cannot be converted.
+- Updated static asset cache versions and setup documentation.
+
+Validation performed: Python compilation, JavaScript syntax, Jinja parsing, CSS parsing, SQLite order-field smoke checks and ZIP integrity. A live Flask/browser flow remains unverified because Flask is not installed and package installation is unavailable in this environment.

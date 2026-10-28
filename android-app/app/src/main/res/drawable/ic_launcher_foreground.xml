@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- clothes hanger -->
+    <path android:strokeColor="#F6F1E7" android:strokeWidth="4.5" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M54,40 C54,34 60,33 60,28 C60,24 57,22 54,22 C51,22 49,24 49,26" />
+    <path android:strokeColor="#F6F1E7" android:strokeWidth="4.5" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M54,40 L30,60 C27,62.5 28.5,67 32.5,67 L75.5,67 C79.5,67 81,62.5 78,60 Z" />
+    <path android:fillColor="#C9A24A" android:pathData="M40,76 h28 v4 h-28 z" />
+</vector>

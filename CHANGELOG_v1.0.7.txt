@@ -1,0 +1,12 @@
+Shreejee Fashion v1.0.7
+
+- Menu button now uses a consistent white style like the Buy and Rent actions, including floating positions.
+- Admins cannot add products to cart, update a cart, save products for later, or apply customer coupon codes. Admin cart state and pending cart-add data are cleared; the server-side handlers reject admin shopping actions.
+- Removed the explicit "View storefront" admin menu entries.
+- Login and Join pages now show the form immediately without the tall promotional banner.
+- Cart page is compact on phones; cart items appear before ongoing-order history, so the customer does not need to scroll past a banner/history list first.
+- Added role-aware bottom taskbar actions for admins and customers.
+- Added a Show/Hide Bottom Taskbar preference to My Account; it is saved in the current browser and applies across pages.
+- Updated static cache-busting version strings to 1.0.7.
+
+Validation performed: Python compilation, JavaScript syntax, Jinja template parsing, CSS parser and ZIP integrity checks.

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Choose how the store looks | {{ store.name }}{% endblock %}
+{% block head %}
+<style>
+.appearance-page{max-width:1180px;margin:0 auto;padding:28px 0 48px;color:var(--ink)}
+.appearance-hero{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px;padding:28px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(130deg,var(--paper),var(--sand));box-shadow:var(--shadow)}
+.appearance-eyebrow{font-size:10px;letter-spacing:.17em;font-weight:850;color:var(--orange);text-transform:uppercase}
+.appearance-hero h1{font-size:clamp(29px,4vw,45px);letter-spacing:-.04em;line-height:1.05;margin:10px 0}.appearance-hero p{color:var(--muted);max-width:650px;margin:0;font-size:13px;line-height:1.6}
+.appearance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:18px 0 26px}
+.appearance-card{display:flex;flex-direction:column;gap:10px;align-items:stretch;text-align:left;padding:14px;border:2px solid var(--line);border-radius:18px;background:var(--paper);color:var(--ink);font:inherit;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;min-width:0}
+.appearance-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.09)}.appearance-card.active{border-color:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
+.appearance-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.appearance-card strong{font-size:16px}.appearance-card small{font-size:11px;color:var(--muted);line-height:1.5}.appearance-selected{font-size:10px;font-weight:800;border-radius:99px;padding:5px 8px;background:var(--green);color:white}.appearance-selected[hidden]{display:none}
+.appearance-preview{height:98px;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:10px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:17px 1fr;gap:7px;overflow:hidden;background:#f4f1e6}.appearance-preview:before{content:'';grid-column:1/-1;background:var(--pv-header,#243c31);border-radius:6px}.appearance-preview span{display:block;border-radius:6px;background:var(--pv-a,#d4e2d8)}.appearance-preview span:nth-child(2){background:var(--pv-b,#e7bd92)}
+.appearance-preview.classic{--pv-header:#174532;--pv-a:#e8eee7;--pv-b:#c3d5c7}.appearance-preview.modern{--pv-header:#2f2bd6;--pv-a:#e7e7ff;--pv-b:#ffb6a5;background:#f5f6ff}.appearance-preview.boutique{--pv-header:#6e1a37;--pv-a:#f3e0bd;--pv-b:#d4b266;background:#fff7ea}.appearance-preview.noir{--pv-header:#0b0b0e;--pv-a:#24252a;--pv-b:#c9a55c;background:#111}.appearance-preview.noir span{border:1px solid #c9a55c}.appearance-preview.fresh{--pv-header:#1b1b35;--pv-a:#c9f4df;--pv-b:#ffb2d1;background:#fff4cf}.appearance-preview.editorial{--pv-header:#111;--pv-a:#eee;--pv-b:#d62c1a;background:#fafafa}
+
+.appearance-settings{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0}.appearance-panel{border:1px solid var(--line);background:var(--paper);border-radius:18px;padding:20px;box-shadow:var(--shadow)}.appearance-panel h2{font-size:17px;margin:0 0 6px}.appearance-panel>p{font-size:11px;color:var(--muted);margin:0 0 17px;line-height:1.5}
+.appearance-setting-row{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:13px 0;border-top:1px solid var(--line)}.appearance-setting-row>div{display:grid;gap:4px}.appearance-setting-row strong{font-size:12px}.appearance-setting-row small{font-size:10px;color:var(--muted);line-height:1.4}.appearance-setting-row select{min-width:145px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);font:inherit}.appearance-volume{width:100%;accent-color:var(--orange)}.appearance-volume-label{font-size:12px;font-weight:850}
+.appearance-switch{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800}.appearance-switch input{width:19px;height:19px;accent-color:var(--green)}.appearance-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0}.appearance-actions-right{display:flex;align-items:center;gap:10px}
+@media(max-width:850px){.appearance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.appearance-settings{grid-template-columns:1fr}}
+@media(max-width:560px){.appearance-page{padding:18px 0 35px}.appearance-hero{padding:20px;display:block}.appearance-hero .btn{margin-top:16px}.appearance-grid{gap:10px}.appearance-card{padding:10px;border-radius:14px}.appearance-preview{height:72px}.appearance-card strong{font-size:13px}.appearance-card small{font-size:10px}.appearance-panel{padding:15px}.appearance-setting-row{align-items:flex-start;flex-direction:column}.appearance-setting-row select{width:100%}.appearance-actions{flex-direction:column-reverse;align-items:stretch}.appearance-actions-right{display:grid;grid-template-columns:1fr}.appearance-actions .btn{width:100%;text-align:center}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="appearance-page" data-appearance-page>
+  <header class="appearance-hero"><div><div class="appearance-eyebrow">Your store · Your style</div><h1>Choose how the store looks.</h1><p>Select a storefront theme, preview it on this page, configure your menu button position and sound effects, then press Apply changes. Your chosen storefront will open on the home page. Admins can also set the selected look as the published default for new visitors.</p></div><a class="btn btn-outline" href="{{ url_for('home') }}">← Back to store</a></header>
+  <form id="appearanceApplyForm" method="post" action="{{ url_for('set_ui_layout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" id="appearanceSelectedLayout" name="layout" value="{{ ui_layout }}">
+    <input type="hidden" name="return_to" value="{{ url_for('home') }}">
+    <div class="section-heading"><h2>Pick a look</h2><p>Tap a theme to preview it live. Nothing is published until you apply.</p></div>
+    <div class="appearance-grid" role="group" aria-label="Storefront themes">
+      {% for key, l in ui_layouts.items() %}
+      <button type="button" class="appearance-card{{ ' active' if key==ui_layout else '' }}" data-appearance-layout="{{ key }}" data-menu-default="{{ l.menu }}" aria-pressed="{{ 'true' if key==ui_layout else 'false' }}">
+        <div class="appearance-preview {{ key }}" aria-hidden="true"><span></span><span></span></div>
+        <div class="appearance-card-top"><strong>{{ l.name }}</strong><span class="appearance-selected" {% if key!=ui_layout %}hidden{% endif %}>Selected</span></div>
+        <small>{{ l.tagline }}</small>
+      </button>
+      {% endfor %}
+    </div>
+    {% if current_user and current_user['role']=='admin' %}
+    <section class="appearance-panel appearance-default-theme"><h2>Website default</h2><p>Set the theme new visitors see when they have not selected a personal look. Existing visitors who saved their own choice keep that preference.</p><label class="appearance-switch"><input type="checkbox" name="set_as_default" value="1" {% if site_config.default_ui|default('classic') == ui_layout %}checked{% endif %}> <span data-default-ui-label>Make {{ ui_layouts[ui_layout].name }} the default look for the website</span></label></section>
+    {% endif %}
+    <div class="appearance-settings">
+      <section class="appearance-panel"><h2>Menu button</h2><p>Choose where the menu button sits. The page updates immediately so you can preview the position.</p>
+        <div class="appearance-setting-row"><div><strong>Menu button location</strong><small>Top corners stay in the header; bottom corners float above the taskbar.</small></div><select id="menuLocationSelect" data-menu-location><option value="tl">Top left</option><option value="tr">Top right</option><option value="bl">Bottom left</option><option value="br">Bottom right</option></select></div>
+      </section>
+      <section class="appearance-panel"><h2>Button sounds</h2><p>Choose click sounds and loudness for buttons and the floating taskbar. Preferences are saved on this device.</p>
+        <div class="appearance-setting-row"><div><strong>Sound effects</strong><small>Turn all interface sounds on or off.</small></div><label class="appearance-switch"><input type="checkbox" data-button-sounds-toggle checked> <span data-sound-switch-text>On</span></label></div>
+        <div class="appearance-setting-row"><div><strong>Sound style</strong><small>Preview before choosing.</small></div><select data-button-sound-style aria-label="Button sound style"><option value="soft">Soft click</option><option value="pop">Pop</option><option value="chime">Chime</option><option value="bubble">Bubble</option><option value="bell">Bell</option><option value="sparkle">Sparkle</option><option value="arcade">Arcade</option><option value="wood">Wood tap</option></select></div>
+        <button type="button" class="btn btn-outline" data-sound-preview>▶ Preview sound</button>
+        <div class="appearance-setting-row" style="display:block"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>Sound intensity</strong><span class="appearance-volume-label" data-sound-volume-label>100%</span></div><input class="appearance-volume" type="range" min="0" max="100" step="5" value="100" data-button-sound-volume aria-label="Sound intensity"><small>Sound also depends on your device and browser volume.</small></div>
+      </section>
+    </div>
+    <div class="appearance-actions"><a href="{{ url_for('home') }}" class="text-link">Cancel and return to the store</a><div class="appearance-actions-right"><button type="button" class="btn btn-outline" data-sound-preview>▶ Test sound</button><button type="submit" class="btn btn-dark" id="appearanceApplyButton">Apply changes →</button></div></div>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  const page=document.querySelector('[data-appearance-page]'); if(!page)return;
+  const layoutInput=document.getElementById('appearanceSelectedLayout');
+  const menuSelect=document.querySelector('[data-menu-location]');
+  const applyButton=document.getElementById('appearanceApplyButton');
+  const validLayouts=[...document.querySelectorAll('[data-appearance-layout]')].map(b=>b.dataset.appearanceLayout);
+  function applyMenuPosition(pos){if(!['tl','tr','bl','br'].includes(pos))pos=document.body.dataset.menuDefault||'tl';document.body.dataset.menuPos=pos;document.body.dataset.menuSide=pos.endsWith('r')?'right':'left';document.querySelectorAll('[data-menu-location]').forEach(s=>s.value=pos);}
+  let initialLayout=layoutInput?.value||document.body.dataset.ui||'classic';
+  function selectLayout(layout,preview){if(!validLayouts.includes(layout))return;layoutInput.value=layout;document.body.dataset.ui=layout;document.querySelectorAll('[data-appearance-layout]').forEach(card=>{const active=card.dataset.appearanceLayout===layout;card.classList.toggle('active',active);card.setAttribute('aria-pressed',active?'true':'false');const tag=card.querySelector('.appearance-selected');if(tag)tag.hidden=!active;});const selected=document.querySelector('[data-appearance-layout="'+CSS.escape(layout)+'"]');const defaultLabel=document.querySelector('[data-default-ui-label]');if(defaultLabel&&selected){const name=selected.querySelector('strong')?.textContent?.trim()||layout;defaultLabel.textContent='Make '+name+' the default look for the website';}if(selected?.dataset.menuDefault){document.body.dataset.menuDefault=selected.dataset.menuDefault;let hasSavedPosition=false;try{hasSavedPosition=!!localStorage.getItem('sf_menu_location');}catch(_){}if(!hasSavedPosition)applyMenuPosition(selected.dataset.menuDefault);}}
+  try{const savedPos=localStorage.getItem('sf_menu_location')||document.body.dataset.menuDefault||'tl';applyMenuPosition(savedPos);}catch(_){applyMenuPosition(document.body.dataset.menuDefault||'tl');}
+  document.querySelectorAll('[data-appearance-layout]').forEach(card=>card.addEventListener('click',()=>selectLayout(card.dataset.appearanceLayout,true)));
+  menuSelect?.addEventListener('change',()=>applyMenuPosition(menuSelect.value));
+  // Keep layout selected on page load and refresh all visible sound preferences.
+  selectLayout(initialLayout,false);
+  try{const enabled=localStorage.getItem('sf_button_sounds')!=='off';document.querySelectorAll('[data-button-sounds-toggle]').forEach(x=>x.checked=enabled);}catch(_){}
+  page.querySelectorAll('[data-button-sounds-toggle]').forEach(x=>{const text=x.parentElement?.querySelector('[data-sound-switch-text]');if(text)text.textContent=x.checked?'On':'Off';});
+  window.addEventListener('storage',e=>{if(e.key==='sf_menu_location')applyMenuPosition(e.newValue||'tl');});
+  document.getElementById('appearanceApplyForm')?.addEventListener('submit',()=>{try{localStorage.setItem('sf_menu_location',menuSelect?.value||'tl');localStorage.setItem('sf_ui_seen','1');}catch(_){} if(applyButton){applyButton.disabled=true;applyButton.textContent='Applying…';}});
+})();
+</script>
+{% endblock %}

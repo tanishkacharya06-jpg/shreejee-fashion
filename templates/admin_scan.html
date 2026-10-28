@@ -1,0 +1,70 @@
+{% extends 'base.html' %}{% block title %}Scan cart QR | {{ store.name }}{% endblock %}{% block head %}<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>{% endblock %}{% block content %}
+<div class="page-title"><div><div class="eyebrow"><span class="eyebrow-line"></span> ADMIN TOOL</div><h1>Scan cart <em>QR.</em></h1><p>Scan the customer's order QR to open the order details. You must be logged in as admin.</p></div><a class="text-link" href="{{ url_for('admin_orders') }}">View all orders →</a></div>
+<div class="scanner-layout"><section class="panel scanner-panel"><div class="eyebrow">CAMERA SCANNER</div><h2>Point at the customer QR</h2><p class="muted">Allow camera access when your browser asks. Use the HTTPS Cloudflare URL or localhost; camera access is blocked on ordinary HTTP pages.</p><div id="reader" class="qr-reader"><video id="nativeCameraPreview" playsinline muted hidden style="width:100%;max-height:420px;object-fit:cover;border-radius:12px"></video></div><div id="scannerStatus" class="scanner-status">Scanner is ready when the library loads.</div><button class="btn btn-outline" id="startScanner" type="button">Start camera</button><button class="btn btn-outline" id="stopScanner" type="button" hidden>Stop camera</button></section><section class="panel"><div class="eyebrow">MANUAL LOOKUP</div><h2>Open by order token</h2><p class="muted">If the camera is not available, ask the customer to open the order page and copy the secure token shown there.</p><form class="form-stack" id="tokenForm"><label>Order token<input id="orderToken" type="text" required placeholder="Paste order token"></label><button type="submit" class="btn btn-dark btn-full">Look up order →</button></form><div class="tip-box"><strong>Tip</strong><p>A phone's normal camera can also scan the QR and open the admin order page. Log in first on that device.</p></div></section></div>
+{% endblock %}{% block scripts %}<script>
+let qrScanner=null, cameraStream=null, nativeScanTimer=null, scannerStarting=false;
+const statusEl=document.getElementById('scannerStatus');
+const start=document.getElementById('startScanner');
+const stop=document.getElementById('stopScanner');
+const video=document.getElementById('nativeCameraPreview');
+function extractToken(decoded){
+  const value=String(decoded||'').trim();
+  try { const j=JSON.parse(value); if(j && typeof j.token==='string' && /^[A-Za-z0-9_-]{12,100}$/.test(j.token)) return j.token; if(j && typeof j.order_token==='string' && /^[A-Za-z0-9_-]{12,100}$/.test(j.order_token)) return j.order_token; } catch(e) {}
+  try { const u=new URL(value,window.location.origin); const parts=u.pathname.split('/').filter(Boolean); const idx=parts.findIndex(p=>p==='order'||p==='qr'); if(idx>=0 && parts[idx+1] && /^[A-Za-z0-9_-]{12,100}$/.test(parts[idx+1])) return decodeURIComponent(parts[idx+1]); } catch(e) {}
+  if(/^[A-Za-z0-9_-]{12,100}$/.test(value)) return value;
+  const tokenMatch=value.match(/(?:token|order_token)[=:]([A-Za-z0-9_-]{12,100})/i); if(tokenMatch) return tokenMatch[1];
+  return null;
+}
+function goToDecoded(decoded){
+  const token=extractToken(decoded);
+  if(!token){statusEl.textContent='QR detected, but it does not contain a recognized order token. Use manual lookup.';return;}
+  statusEl.textContent='Order QR recognized. Opening order…';
+  stopCamera().finally(()=>{window.location.href='/admin/qr/'+encodeURIComponent(token);});
+}
+async function stopCamera(){
+  if(nativeScanTimer){clearInterval(nativeScanTimer);nativeScanTimer=null;}
+  if(cameraStream){cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;}
+  if(video){video.pause();video.srcObject=null;video.hidden=true;}
+  if(qrScanner){try{if(qrScanner.isScanning)await qrScanner.stop();}catch(e){}try{await qrScanner.clear();}catch(e){}qrScanner=null;}
+  start.hidden=false;stop.hidden=true;
+}
+async function tryNativeScanner(){
+  if(!('BarcodeDetector' in window))return false;
+  let detector;
+  try{detector=new BarcodeDetector({formats:['qr_code']});}catch(e){return false;}
+  video.hidden=false; await video.play();
+  nativeScanTimer=setInterval(async()=>{
+    if(!cameraStream||video.readyState<2||document.hidden)return;
+    try{const codes=await detector.detect(video);if(codes&&codes.length&&codes[0].rawValue)goToDecoded(codes[0].rawValue);}catch(e){}
+  },250);
+  return true;
+}
+start?.addEventListener('click',async()=>{
+  if(scannerStarting)return;scannerStarting=true;start.disabled=true;
+  statusEl.textContent='Requesting camera permission…';
+  try{
+    if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){throw new Error('Camera access needs HTTPS or localhost.');}
+    // Get permission first so device labels and the rear-camera selection are available.
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    video.srcObject=cameraStream;video.hidden=false;await video.play();
+    start.hidden=true;stop.hidden=false;
+    if(await tryNativeScanner()){statusEl.textContent='Camera active. Hold the order QR steady in the frame.';return;}
+    // Fallback for browsers without BarcodeDetector.
+    if(window.Html5Qrcode){
+      await stopCamera();qrScanner=new Html5Qrcode('reader');const cameras=await Html5Qrcode.getCameras();
+      if(!cameras||!cameras.length)throw new Error('No camera device was found.');
+      const camera=cameras.find(c=>/back|rear|environment/i.test(c.label))||cameras[0];
+      await qrScanner.start(camera.id,{fps:10,qrbox:{width:240,height:240}},goToDecoded,()=>{});
+      statusEl.textContent='Camera active. Hold the order QR steady in the frame.';start.hidden=true;stop.hidden=false;return;
+    }
+    statusEl.textContent='Camera is on, but this browser cannot decode QR codes here. Use manual token lookup, or try a recent Chrome browser.';
+  }catch(e){
+    await stopCamera();
+    const reason=e&&e.name==='NotAllowedError'?'Camera permission was denied. Allow camera access in browser settings.':e&&e.name==='NotFoundError'?'No camera was found on this device.':(e&&e.message)||'Camera could not start.';
+    statusEl.textContent=reason+' Use the HTTPS Cloudflare URL or manual lookup if needed.';
+  }finally{start.disabled=false;scannerStarting=false;}
+});
+stop?.addEventListener('click',async()=>{await stopCamera();statusEl.textContent='Camera stopped.';});
+document.getElementById('tokenForm')?.addEventListener('submit',e=>{e.preventDefault();const token=extractToken(document.getElementById('orderToken').value);if(token)window.location.href='/admin/qr/'+encodeURIComponent(token);else statusEl.textContent='Enter the full order token or paste the full order URL.';});
+window.addEventListener('pagehide',()=>{if(cameraStream)cameraStream.getTracks().forEach(track=>track.stop());});
+</script>{% endblock %}

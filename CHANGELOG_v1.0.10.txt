@@ -1,0 +1,8 @@
+SHREEJEE FASHION v1.0.10
+========================
+
+- Fixed mobile logout discoverability: authenticated admins and customers now see a dedicated first-level “Log out” row in the slide-out Menu.
+- Logout is outside the collapsed My Account group, so it does not require expanding another section.
+- Added distinctive styling so the logout action is easy to spot on phone screens and in Fresh Pop.
+- Kept the existing /logout session-clearing route; logout returns the visitor to the homepage.
+- Bumped CSS/JavaScript cache keys and the health-check version to 1.0.10.

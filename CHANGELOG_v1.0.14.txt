@@ -1,0 +1,5 @@
+v1.0.14
+1. Android app opens instantly: it loads the last known shop address first and checks the Gist in the background (before, it waited for GitHub + a health check, up to 15 s).
+2. Android app: real camera for "Take photo" (input capture), camera access for the QR scanner page, cleaner gallery picker.
+3. Website: photo pickers no longer use input.showPicker() inside the app (it silently did nothing in Android WebView), so Gallery / Camera buttons open.
+4. Android build: fixed signing key (app updates install over each other) and a GitHub Actions workflow (.github/workflows/build-apk.yml) that builds the APK.

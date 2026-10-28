@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% block title %}Saved items | {{ store.name }}{% endblock %}
+{% block content %}
+<div class="page-title"><div><div class="eyebrow"><span class="eyebrow-line"></span> SAVED FOR LATER</div><h1>Your <em>saved items.</em></h1><p>Styles you want to come back to. Tap ＋ to add one to your cart — we’ll ask for the size.</p></div></div>
+<div data-wishlist-page>
+{% if products %}{% include '_catalog_results.html' %}{% else %}<div class="empty-state"><div class="empty-icon">♡</div><h3>Nothing saved yet.</h3><p>Tap the heart on any style to keep it here, or use “Save for later” in your cart.</p><a class="btn btn-dark" href="{{ url_for('home', browse='1') }}">Browse styles</a></div>{% endif %}
+</div>
+{% endblock %}

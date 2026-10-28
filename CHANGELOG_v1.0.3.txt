@@ -1,0 +1,10 @@
+Shreejee Fashion v1.0.3
+
+- Replaced the appearance popup with a dedicated full page at /appearance.
+- Theme selection now previews live and only applies after pressing Apply changes; applying returns to the home page.
+- Added a private Admin Control Center link to the appearance page for signed-in administrators only.
+- Added recent admin notifications and a dedicated notification shortcut inside Admin Studio.
+- Fixed Fresh Pop dock direction detection so even a small downward scroll hides it and any upward scroll reveals it.
+- Added taskbar and navigation-link sound support, including pointer-down playback for links that navigate immediately.
+- Improved sound gain mapping so quieter volume settings remain audible while preserving the on/off control.
+- Kept the existing store data, product/order routes and customer themes intact.

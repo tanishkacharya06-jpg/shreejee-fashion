@@ -1,0 +1,21 @@
+SHREEJEE FASHION — VERSION 13.0
+
+Changes:
+- Customer cart persists in the database per account across refreshes and logouts.
+- Online checkout creates a UPI intent QR with the requested payee and live order total.
+- Two-minute payment-decision countdown uses a server-stored expiry and survives refreshes.
+- Customer can report payment, choose Not yet, or change an unverified payment decision.
+- Admin sees a notification and must independently verify the transfer in the store's UPI/bank account before registering the order.
+- Online orders then use the existing COD preparation/dispatch/doorstep-code workflow.
+- Pay-at-store QR orders show only Cancel and Mark Delivered to the admin; both payment and physical handover must be confirmed to mark Delivered.
+- Delivered customer orders display “You have received your order,” and hide the QR, cancellation control, delivery code, and order token.
+- “Go To Cart” is a small bottom-right pill and can be hidden/re-enabled by the customer.
+- Home navigation label and homepage-only hero behavior are retained.
+- Product review/feedback remains available on product detail pages.
+- Product upload form has separate Gallery (multiple photos) and Camera buttons feeding one upload queue, with compression, progress and elapsed timer.
+- Corrected the bottom-corner cart animation so it no longer shifts horizontally on entry.
+
+Safety notes:
+- UPI QR generation is not proof of payment. The admin must verify a matching transaction in the merchant account.
+- The six-digit delivery code is shown to the customer only and is not rendered in the admin order page.
+- Delivered orders are locked by server-side status checks.

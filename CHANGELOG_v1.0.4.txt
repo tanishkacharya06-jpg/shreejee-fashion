@@ -1,0 +1,12 @@
+SHREEJEE FASHION v1.0.4
+========================
+
+- Removed Admin Studio and its dedicated routes/template; retained existing admin dashboard and management sections.
+- Expanded global button sounds to links, buttons, category tiles, summaries, dropdown links and mobile taskbar items.
+- Replaced the cart glyph in the header, main navigation and mobile taskbar with a detailed inline SVG cart icon.
+- Improved Fresh Pop phone taskbar width, touch targets, label sizing, safe-area spacing and hide/show behavior during touch scrolling.
+- Enabled SQLite WAL mode, a busy timeout and normal synchronous mode for more responsive concurrent read/write access. All route writes continue to commit before the response is returned.
+
+UPGRADE SAFETY
+- Back up store.db and static/uploads/ before upgrading.
+- This release does not delete existing customer, product or order records.

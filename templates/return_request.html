@@ -1,0 +1,27 @@
+{% extends 'base.html' %}{% block title %}Return or exchange | {{ store.name }}{% endblock %}
+{% block content %}
+<div class="page-title"><div><div class="eyebrow"><span class="eyebrow-line"></span> RETURNS &amp; EXCHANGES</div><h1>Return or <em>exchange.</em></h1><p>Order #{{ order['id'] }} · delivered items can be returned or exchanged within {{ window }} days.</p></div></div>
+<div class="account-grid">
+<section class="panel"><div class="panel-heading"><div><div class="eyebrow">NEW REQUEST</div><h2>What went wrong?</h2></div></div>
+{% if lines %}
+<form method="post" class="form-stack return-form" id="returnForm"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="form-label">1 · CHOOSE THE ITEM</div>
+<div class="return-lines">{% for l in lines %}<label class="return-line"><input type="radio" name="item" value="{{ l['idx'] }}" data-max="{{ l['remaining'] }}" data-sizes="{{ l['sizes']|join('|') }}" {% if loop.first %}checked{% endif %} required><span><strong>{{ l['name'] }}</strong><small>{% if l['size'] %}Size {{ l['size'] }} · {% endif %}{{ l['remaining'] }} eligible · you paid ₹{{ '%.2f'|format(l['unit_paid']) }} each</small></span></label>{% endfor %}</div>
+<div class="form-label">2 · WHAT DO YOU WANT?</div>
+<div class="return-kinds"><label class="return-line"><input type="radio" name="kind" value="return" checked><span><strong>Return for a refund</strong><small>Bring the item back; refund is issued by the store.</small></span></label><label class="return-line"><input type="radio" name="kind" value="exchange"><span><strong>Exchange</strong><small>Swap for another size.</small></span></label></div>
+<div class="form-two-col"><label>Quantity<input type="number" name="qty" id="returnQty" min="1" value="1"></label><label id="exchangeSizeWrap" hidden>New size<select name="exchange_size" id="exchangeSize"></select></label></div>
+<label>Reason<select name="reason" required><option value="">Select a reason</option>{% for r in reasons %}<option value="{{ r }}">{{ r }}</option>{% endfor %}</select></label>
+<label>Details <span class="optional">(optional, required for “Other”)</span><textarea name="details" rows="3" maxlength="600" placeholder="Tell us a little more so we can help faster"></textarea></label>
+<button class="btn btn-dark btn-full" type="submit">Send request →</button>
+<p class="small muted">The store reviews every request. Refunds are handled at the store (no online payment is taken on this site) and the status is shown here.</p>
+</form>
+{% else %}<div class="empty-inline"><p>{{ closed_reason }}</p></div>{% endif %}
+<a class="btn btn-outline btn-full wa-btn" style="margin-top:14px" target="_blank" rel="noopener" href="{{ wa_link('Hi Shreejee Fashion, I need help with a return/exchange for order #' ~ order['id']) }}">💬 Talk to the store on WhatsApp</a>
+</section>
+<section class="panel"><div class="panel-heading"><div><div class="eyebrow">STATUS</div><h2>Requests on this order</h2></div></div>
+{% if history %}<div class="return-list">{% for r in history %}<div class="return-row static"><div><strong>{{ r['product_name'] }}{% if r['size'] %} · {{ r['size'] }}{% endif %} × {{ r['qty'] }}</strong><small>{{ r['kind']|title }} · {{ r['reason'] }}{% if r['exchange_size'] %} · to size {{ r['exchange_size'] }}{% endif %}</small>{% if r['admin_note'] %}<small class="store-note">Store note: {{ r['admin_note'] }}</small>{% endif %}</div><div class="return-row-status"><span class="mini-status {{ 'good' if r['status']=='Completed' else ('bad' if r['status']=='Rejected' else 'pending') }}">{{ r['status'] }}</span>{% if r['kind']=='return' and r['status']!='Rejected' %}<small>Refund: {{ r['refund_status'] }}{% if r['refund_status']!='Not applicable' %} · ₹{{ '%.2f'|format(r['refund_amount']) }}{% endif %}{% if r['refund_note'] %} ({{ r['refund_note'] }}){% endif %}</small>{% endif %}</div></div>{% endfor %}</div>{% else %}<div class="empty-inline"><p>No requests yet.</p></div>{% endif %}</section>
+</div>
+{% endblock %}
+{% block scripts %}<script>(function(){const f=document.getElementById('returnForm');if(!f)return;const qty=document.getElementById('returnQty'),wrap=document.getElementById('exchangeSizeWrap'),sel=document.getElementById('exchangeSize');
+function sync(){const item=f.querySelector('input[name=item]:checked');const kind=f.querySelector('input[name=kind]:checked').value;if(!item)return;const max=+item.dataset.max||1;qty.max=max;if(+qty.value>max)qty.value=max;const sizes=(item.dataset.sizes||'').split('|').filter(Boolean);const show=kind==='exchange'&&sizes.length;wrap.hidden=!show;sel.required=!!show;sel.innerHTML=sizes.map(s=>'<option>'+s.replace(/</g,'&lt;')+'</option>').join('');}
+f.addEventListener('change',sync);sync();})();</script>{% endblock %}

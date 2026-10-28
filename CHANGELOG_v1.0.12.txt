@@ -1,0 +1,16 @@
+v1.0.12
+1. WhatsApp order alerts: every new order sends the owner a WhatsApp message (customer, phone, items with size/colour, total, address). Needs keys in .env - see below. Never slows or breaks checkout.
+2. Shop page: "Sort & filter" box - sort (newest, price low/high, name), min/max price, size, colour, in-stock only.
+3. Products now have colours (admin "Available colours" field). Customers pick size AND colour (product page chips + pop-up from the + button). Shown in cart, orders, admin order view and the WhatsApp alert.
+4. Delivery PIN code: customers can check a PIN on product pages and in the cart. Admin > Delivery PIN codes: add/remove PINs, optional "deliver only to listed PINs" (also enforced for COD/online address at checkout).
+5. Login with Google (set GOOGLE_CLIENT_ID) and login with phone OTP by SMS (set FAST2SMS_API_KEY). Buttons only appear when set up. Admin accounts can't use Google login.
+6. Login limits: 5 wrong passwords (or OTP codes) locks that account for 15 minutes; also limits per IP. OTP: 6 digits, 5-minute expiry, 1 per minute, 5 per hour.
+7. Automatic daily database backup into the "backups" folder (keeps the latest 14). Admin dashboard > Store systems: back up now / download latest.
+8. Login, register, forgot/reset password and OTP pages no longer show the bottom taskbar.
+9. New detailed account icon (person-in-circle) in the taskbar and menu; the login page has a larger icon with a lock.
+
+SETUP (all optional): copy .env.example to .env and fill in only what you use.
+- WhatsApp: WHATSAPP_TOKEN + WHATSAPP_PHONE_ID (Meta WhatsApp Cloud API), or CALLMEBOT_APIKEY (free; message the CallMeBot bot once). Owner number is 8340453008 unless OWNER_WHATSAPP is set.
+- Google: create an OAuth "Web" client ID in Google Cloud Console; add your site address under Authorised JavaScript origins.
+- SMS OTP: FAST2SMS_API_KEY. For testing without SMS use SF_OTP_DEV=1 (the code prints in the black console window).
+Note: backups copy the database only, not static/uploads photos - copy that folder occasionally too.

@@ -1,0 +1,79 @@
+SHREEJEE FASHION — START HERE (v1.0.11)
+=====================================
+
+FIRST-TIME SETUP
+1) Install Python 3.10+ from https://www.python.org/downloads/ and enable “Add Python to PATH”.
+2) Extract this ZIP into a normal folder.
+3) If upgrading an existing Shreejee installation, back up its `store.db` and `static/uploads/` first. Copy those two into this extracted project before the first startup to retain products, customers, orders, and uploaded images. Do not overwrite your backup. Startup migrations are designed to add missing fields/tables without deleting existing records.
+4) Open the extracted folder in File Explorer, click the address bar, type `cmd`, and press Enter.
+5) Install dependencies once:
+       py -m pip install -r requirements.txt
+6) Start the website by double-clicking `app.py`, or run:
+       py app.py
+7) The browser opens the temporary Cloudflare URL automatically once the tunnel is ready (the local http address is not opened). Keep the terminal window open.
+
+ONE-CLICK CLOUDFLARE
+- app.py attempts to start a temporary Cloudflare Quick Tunnel automatically.
+- If cloudflared.exe is not present, it attempts to download the official Windows binary.
+- Copy the https://....trycloudflare.com URL displayed in the terminal and open it on your phone.
+- The temporary public URL changes after a restart. Internet access is required.
+- If the automatic download is blocked, install the official cloudflared tool and restart app.py.
+- No .bat file is required. Closing the app.py window stops the web server and tunnel.
+
+STARTER ADMIN ACCOUNTS (CHANGE BEFORE PUBLIC LAUNCH)
+Admin 1 login: admin
+Admin 1 password: admin
+Admin 2 login: rajveer853982@gmail.com
+Admin 2 password: rajveer_001
+
+Existing admin password hashes are preserved on later restarts, so changed passwords are not overwritten. Do not use starter passwords on a public site.
+
+VERSION 1.0.10 DIAGNOSTICS
+- Visit /health on the local/public store URL to confirm the Flask app responds. A working install returns JSON with ok=true and version 1.0.10.
+- If you see a JSON response with code 10005 and “Method Not Allowed”, verify you opened the https://....trycloudflare.com/ homepage printed in the terminal, not a Cloudflare API URL or a submit-only page. This app does not send requests to the Cloudflare REST API.
+
+VERSION 1.0.8 HIGHLIGHTS
+- Admin screens reload automatically when customer orders are placed or updated.
+- COD and online delivery orders now use an admin-quoted delivery charge that the customer must accept or decline.
+- Gallery upload prepares larger phone photos in the browser before applying the 8 MB per uploaded image limit.
+
+VERSION 1.0.7 HIGHLIGHTS
+- Admins can choose the website's default theme from Choose how the store looks or Admin > Website Editor > Appearance.
+- Login, registration and password-reset fields have an eye button to show/hide the password.
+- Admin My Account is available in the header navigation and slide-out menu.
+- Mobile taskbars use safer widths, safe-area spacing and bottom padding across the supported looks.
+
+VERSION 1.0.5 HIGHLIGHTS
+- “Choose how the store looks” is a full settings page at /appearance, not a popup. Select a theme to preview it, then press Apply changes to save and return home.
+- Button sounds cover buttons, links, category cards, dropdowns and mobile taskbar controls; volume intensity uses a louder non-linear scale.
+- Removed Admin Studio and its theme/preview routes; the regular Admin Dashboard, notifications, coupons, returns and Website Editor remain.
+- SQLite uses WAL journaling and a busy timeout to improve responsiveness for concurrent read/write activity.
+- Fresh Pop taskbar has safer mobile widths, tap targets and safe-area spacing.
+- Fresh Pop taskbar hiding now responds to small downward scrolls and returns on even a slight upward scroll.
+
+VERSION 1.0.1 HIGHLIGHTS
+- Admins can open “Choose how the store looks” from the header or slide-out menu, just like customers. The admin preview is saved in that browser.
+- Eight browser-generated sound styles are available (Soft click, Pop, Chime, Bubble, Bell, Sparkle, Arcade and Wood tap); users can preview a style or turn sounds off.
+- Menu button placement can be adjusted from the appearance page; Fresh Pop defaults to top-left until you choose another position.
+- Customer Notifications and Returns & Exchanges are available inside the My Account menu.
+- Selected category expands into an animated menu. Women / Girl contains Chania-choli, Lehenga Choli, Jewelry / Accessories, Lehenga and Blouse.
+- Boys / Men and Kids Wear show “Coming soon” for customers. Admins can open those categories from the slide-out menu.
+- In Admin > Website Editor, use Customer menu categories to add, edit or remove top-level categories and nested subcategories, then Save Draft or Publish Changes.
+- Guest customers can browse, but Add to Cart opens a login/register prompt. Product, order and account features remain available.
+
+SECURITY & BACKUPS
+- On first run, a private `.secret_key` file is generated automatically unless `SHREEJEE_SECRET_KEY` is supplied in the environment.
+- Back up `store.db` and `static/uploads/` before upgrades. Do not share the database or `.secret_key` file publicly.
+- For public deployment, use HTTPS, set a long random `SHREEJEE_SECRET_KEY`, change starter admin passwords, and use a production WSGI server.
+- Never put real payment secrets in source files or share card PINs, CVVs, UPI PINs, or bank passwords.
+
+For older feature details, read README.md and the historical CHANGELOG files. The ZIP intentionally excludes customer data and private keys.
+
+
+MOBILE LOGOUT (v1.0.11)
+- Sign in, tap Menu, and look for the separate pink/red “Log out” row directly in the menu list. It is visible without opening My Account.
+- Hard-refresh the phone browser after installing, so the updated menu CSS loads.
+
+
+--- NEW in v1.0.12 ---
+WhatsApp alerts, Google/phone-OTP login, delivery PIN codes and backups are optional and switched on from a ".env" file. Copy ".env.example" to ".env" and read CHANGELOG_v1.0.12.txt.

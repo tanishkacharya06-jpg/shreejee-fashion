@@ -1,0 +1,13 @@
+{% if google_client_id or otp_ready() %}
+<div class="auth-divider"><span>or continue with</span></div>
+<div class="social-login">
+{% if google_client_id %}
+<div id="g_id_onload" data-client_id="{{ google_client_id }}" data-callback="sfGoogleCred" data-auto_prompt="false"></div>
+<div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-logo_alignment="left" data-width="300"></div>
+<form id="googleForm" method="post" action="{{ url_for('auth_google') }}" hidden><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="credential" id="googleCredential"><input type="hidden" name="next" value="{{ next_url|default(request.args.get('next','')) }}"></form>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>window.sfGoogleCred=function(r){document.getElementById('googleCredential').value=r.credential;document.getElementById('googleForm').submit();};</script>
+{% endif %}
+{% if otp_ready() %}<a class="btn btn-outline btn-full otp-link" href="{{ url_for('login_otp', next=next_url|default(request.args.get('next',''))) }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.6" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9.5 8.5h5M9.5 11.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".6"/></svg> Log in with phone OTP</a>{% endif %}
+</div>
+{% endif %}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shreejee Fashion - shop is resting</title>
+<style>
+:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#1d2a24;--accent:#1c3d31;--accent-ink:#fff;--pop:#c9a24a;--muted:#6d746f;--line:#e2dccb;--radius:6px;--shadow:0 10px 30px rgba(28,61,49,.12);--head:Georgia,'Times New Roman',serif;--body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--border:1px solid var(--line)}
+html[data-theme=modern]{--bg:#f5f6ff;--card:#fff;--ink:#14163a;--accent:#2f2bd6;--accent-ink:#fff;--pop:#ff6b4a;--muted:#656a88;--line:#e1e3f5;--radius:22px;--shadow:0 14px 36px rgba(47,43,214,.16);--head:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+html[data-theme=boutique]{--bg:#fbf1e1;--card:#fffaf0;--ink:#3a1f26;--accent:#6e1a37;--accent-ink:#fff;--pop:#c9a24a;--muted:#7d6a5a;--line:#e8d6b4;--radius:2px;--shadow:0 14px 40px rgba(110,26,55,.18);--border:3px double #c9a24a}
+html[data-theme=noir]{--bg:#0f0f13;--card:#17171d;--ink:#f1e8d2;--accent:#c9a55c;--accent-ink:#15120a;--pop:#c9a55c;--muted:#9a927f;--line:#2b2a31;--radius:0;--shadow:0 16px 44px rgba(0,0,0,.55);--head:'Cormorant Garamond',Georgia,serif}
+html[data-theme=fresh]{--bg:#fff4cf;--card:#fff;--ink:#1b1b35;--accent:#ff5d8f;--accent-ink:#fff;--pop:#7be0b5;--muted:#5e5e7a;--line:#1b1b35;--radius:20px;--shadow:6px 6px 0 #1b1b35;--head:'Trebuchet MS',system-ui,sans-serif;--border:3px solid #1b1b35}
+html[data-theme=editorial]{--bg:#fbfaf6;--card:#fff;--ink:#111;--accent:#111;--accent-ink:#fff;--pop:#d62c1a;--muted:#6b6b66;--line:#111;--radius:0;--shadow:none;--head:'Times New Roman',Georgia,serif;--border:2px solid #111}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-text-size-adjust:100%}
+.card{width:min(100%,430px);background:var(--card);border:var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 22px;text-align:center}
+.sign{display:inline-grid;place-items:center;width:92px;height:92px;border-radius:50%;background:var(--accent);color:var(--accent-ink);margin-bottom:14px}
+html[data-theme=fresh] .sign{border:3px solid #1b1b35;transform:rotate(-6deg);box-shadow:4px 4px 0 #1b1b35}
+html[data-theme=editorial] .sign,html[data-theme=noir] .sign{border-radius:0}
+html[data-theme=boutique] .sign{border:3px double var(--pop)}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--pop);font-weight:700}
+html[data-theme=editorial] .eyebrow{color:var(--pop)}
+h1{font-family:var(--head);font-size:30px;line-height:1.1;margin:8px 0 10px;font-weight:600}
+html[data-theme=editorial] h1{font-size:40px;font-weight:700;letter-spacing:-.02em}
+html[data-theme=fresh] h1{font-weight:800}
+p{margin:0 0 12px;color:var(--muted);line-height:1.5;font-size:15px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;margin-top:10px;padding:12px 16px;border:var(--border);border-radius:var(--radius);background:var(--card);color:var(--ink);font:700 15px var(--body);text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+html[data-theme=fresh] .btn{box-shadow:3px 3px 0 #1b1b35}
+html[data-theme=fresh] .btn.primary{border-color:#1b1b35}
+html[data-theme=noir] .btn{border-color:var(--line)}
+.status{margin-top:14px;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--pop);margin-right:6px;animation:p 1.4s infinite}
+@keyframes p{50%{opacity:.25}}
+.addr{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.5}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="sign" aria-hidden="true">
+    <svg viewBox="0 0 64 64" width="52" height="52" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 26c0-4 5-5 5-9 0-3-2.2-5-5-5s-5 2-5 5"/><path d="M32 26 11 43c-2.4 2-1 6 2.4 6h37.2c3.4 0 4.8-4 2.4-6Z"/><path d="M20 55h24"/><path d="M26 38l12 8M38 38 26 46" opacity=".5"/></svg>
+  </div>
+  <div class="eyebrow">Shreejee Fashion</div>
+  <h1>Our online shop is taking a short rest</h1>
+  <p>We cannot reach the shop right now. It usually comes back as soon as the shop's computer is on and connected again.</p>
+  <button class="btn primary" id="retry" type="button">Try again</button>
+  <a class="btn" id="wa" href="#">Message us on WhatsApp</a>
+  <a class="btn" id="call" href="#">Call the store</a>
+  <div class="status"><span class="dot"></span><span id="msg">Checking again automatically…</span></div>
+  <div class="addr">Near Jora Pathak Road, Shakti Mandir, opposite Chhota Gurdwara, beside Ashirwad Tower, Sanghvi Colony, House no. 04</div>
+</main>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search);
+  var themes=['classic','modern','boutique','noir','fresh','editorial'];
+  var t=q.get('theme');if(themes.indexOf(t)<0)t='classic';
+  document.documentElement.setAttribute('data-theme',t);
+  var phone=(q.get('phone')||'918340453008').replace(/\D/g,'');
+  document.getElementById('wa').href='https://wa.me/'+phone+'?text='+encodeURIComponent('Hello Shreejee Fashion! I could not open the app.');
+  document.getElementById('call').href='tel:+'+phone;
+  var btn=document.getElementById('retry'),msg=document.getElementById('msg');
+  btn.addEventListener('click',function(){
+    msg.textContent='Trying to reach the shop…';
+    if(window.SFApp&&SFApp.retry){SFApp.retry();}else{location.reload();}
+  });
+})();
+</script>
+</body>
+</html>

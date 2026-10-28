@@ -1,0 +1,7 @@
+Shreejee Fashion v19.0 — navigation and Fresh Pop polish
+
+- Grouped Boys Wear, Girls Wear and Kids Wear under the “Selected category” dropdown in the customer navigation and slide-out menu.
+- Grouped My account, Saved items and Cart under an account shortcut dropdown in the customer navigation and slide-out menu.
+- Added hover/focus/click animations, keyboard Escape closing, and mobile-friendly disclosure groups.
+- Restyled the slide-out menu and “Choose how the store looks” popup to match Fresh Pop’s mint, lemon, pink and bold-outline theme.
+- In Fresh Pop, the quick-navigation dock hides while scrolling down and reappears as soon as the visitor scrolls up; it remains visible at the top of the page.

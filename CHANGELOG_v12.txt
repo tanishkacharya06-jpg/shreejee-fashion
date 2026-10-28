@@ -1,0 +1,20 @@
+Shreejee Fashion v12.0 — COD doorstep workflow, scanner and product galleries
+=============================================================================
+
+- Added the requested default customer/demo login: ID `null`, password `null`. It is a customer-only account with editable placeholder profile/contact details; COD checkout rejects its placeholder address.
+- COD requests start as `COD requested` and notify admin accounts. Admin progression is controlled: `COD requested` → `Preparing item` → `Ready for dispatch` → `On the way` → `Awaiting delivery code` → `Delivered`.
+- The doorstep action creates a unique six-digit one-time code. The code is delivered through the customer's in-site notification and owned order page/API; no admin-facing template/API exposes the code.
+- The admin verifies the exact order-scoped code and must affirm payment received and handover before completing COD. Codes are rate-limited and cannot be reused; delivered orders cannot be changed through ordinary status controls.
+- Customer can cancel eligible orders before the item is out for delivery. Cancellation is locked once an order is delivered or cancelled.
+- Customer order page shows the full order token. Delivered orders show “You have received your order”, hide QR/code and remain in lifetime account order history.
+- Improved camera scanner uses native BarcodeDetector when available, requests camera permission from a user click, prefers the rear camera, stops tracks when leaving, and offers a manual token fallback. Camera access requires HTTPS or localhost.
+- Admin product create/edit accepts up to eight photos, compresses them client-side when supported, displays upload progress, and retains a gallery of existing/new product photos.
+- Added persistent bottom Go To Cart action after a successful AJAX cart addition; users can dismiss or re-enable it from the cart preference control.
+- Existing product/catalogue, customer authentication, coupons, custom categories, buy/rent, website editor, order-history, QR and Cloudflare setup are retained.
+
+Validation performed in the available build environment:
+- Python syntax compilation passed.
+- Main JavaScript and inline scanner JavaScript syntax checks passed.
+- Jinja parsing passed for all 22 templates.
+- Isolated SQLite checks cover demo account creation, order status transitions, hiding the code from admin, customer code visibility, wrong-code rejection, payment/handover gating, and delivered-order locking.
+- The runtime environment did not have Flask/Werkzeug installed and package downloads were unavailable, so an actual live browser/camera test could not be performed here. Install requirements locally and test a sample order before using in production.

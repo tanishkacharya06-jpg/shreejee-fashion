@@ -1,0 +1,7 @@
+v18.0
+- Menu button can now be moved by EVERYONE (guests too, not just logged-in customers) to any corner: top-left, top-right, bottom-left, bottom-right, or "Follow my look". Find it in the menu, the look picker and My account. The button itself moves (before, only the sliding panel changed side, and only for logged-in customers), and the menu opens from the same side. Saved on the account and in a small cookie (sf_menu).
+- 3 new website looks, 6 in total: Midnight Luxe (black & gold, side rail / floating dock), Fresh Pop (mint, lemon & pink, sticker cards, pill header, floating buttons) and Editorial (black & white magazine, giant type, text menu). Modern App and Festive Boutique were reworked for the new menu button. Classic is unchanged because the Website Editor colours drive it.
+- Back button on every page except the plain home page (uses the browser history, falls back to Home / Admin dashboard).
+- Product page: removed "Tap the photo to ask about this item on WhatsApp." and the tap-the-photo pop-up. There is now a real "Ask on WhatsApp" button next to Save for later.
+- Website Editor > Product page > Button order: the owner can reorder Buy, Rent, View cart, Save for later, Ask on WhatsApp and Review (arrows), and hide the optional ones.
+- Fixed broken markup in the product page title.

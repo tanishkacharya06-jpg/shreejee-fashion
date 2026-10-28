@@ -1,0 +1,4 @@
+v1.0.13
+1. Android app project (folder "android-app"): opens the newest Quick Tunnel address; if the shop PC/internet/tunnel is down it shows a custom "shop is resting" page in the customer's chosen look (6 looks), auto-retries every 20 s, with WhatsApp + Call buttons. Read android-app/README.txt.
+2. app.py saves each new Cloudflare address to current_url.txt and (with SF_GITHUB_TOKEN + SF_GIST_ID in .env) to a private GitHub Gist the app reads.
+3. Website tells the app the customer's current look on every page.

@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.Shreejee" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/sf_cream</item>
+        <item name="android:statusBarColor">@color/sf_green</item>
+        <item name="android:navigationBarColor">@color/sf_cream</item>
+    </style>
+</resources>

@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+store.db
+static/uploads/*
+!static/uploads/.gitkeep
+.env
+
+.secret_key
+backups/
+current_url.txt

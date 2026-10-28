@@ -1,0 +1,10 @@
+SHREEJEE FASHION — CHANGELOG v14.0
+
+- Removed public hints about the default customer account. Its name, email and phone identity are locked server-side; the public login page does not advertise it.
+- Customer-facing navigation uses “Notification”; admin navigation keeps its administrative alert label. Notification links point directly to relevant order or store actions.
+- Pay Online checkout now requires a delivery address. UPI payment decision is untimed and offers “I have paid” / “Not yet”; “Change my decision” is available while awaiting store verification.
+- Added animated app drawer access to Home, Buy, Rent, Boys/Girls/Kids, Cart, account, About, and legal documents.
+- Added-to-cart success feedback now uses a compact black square with a white check mark. The broader cart fly animation continues to respect reduced-motion settings.
+- Login without a pending add-to-cart/authentication return target lands on Home. Existing selected-product auth redirects are preserved.
+
+UPI customer reports do not prove payment. Administrators must verify the matching transaction in the store’s actual bank/UPI account before confirming payment.

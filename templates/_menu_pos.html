@@ -1,0 +1,6 @@
+{# Menu-button position chooser. Works for guests (cookie) and members (account). #}
+<div class="pos-grid" role="group" aria-label="Menu button position">
+  {% for val, label in [('auto','Follow my look'),('tl','Top left'),('tr','Top right'),('bl','Bottom left'),('br','Bottom right')] %}
+  <button type="submit" name="pos" value="{{ val }}" class="pos-opt{{ ' active' if (menu_choice or 'auto')==val }}" data-pos-value="{{ val }}" aria-pressed="{{ 'true' if (menu_choice or 'auto')==val else 'false' }}"><span class="pos-phone pos-phone-{{ val }}" aria-hidden="true"><i></i></span><small>{{ label }}</small></button>
+  {% endfor %}
+</div>

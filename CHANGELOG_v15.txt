@@ -1,0 +1,7 @@
+
+v15.1
+- Admin "Available quantity (stock)" per product: drops with every ordered unit, restored on cancellation; at 0 the product is "Sold out" and cannot be ordered. Empty = unlimited.
+- Menu button now sits right beside the Shreejee Fashion logo and the menu opens from the left.
+- Add to cart now plays only the tick on the button (no flying animation, toast or Go-to-Cart bar).
+- Shared "null" account: name, email, phone and address are shown but locked/unclickable at checkout (fixed server-side).
+- Startup no longer opens the local http address; it opens the Cloudflare URL once the tunnel is ready.

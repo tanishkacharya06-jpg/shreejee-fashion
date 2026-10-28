@@ -1,0 +1,7 @@
+Shreejee Fashion v1.0.1 — Admin look picker and sound/menu cleanup
+
+- Admins can open “Choose how the store looks” from the desktop header or app drawer, just like customers. Admin preview now remembers the chosen look in that browser.
+- Added eight selectable browser-generated button sound styles: Soft click, Pop, Chime, Bubble, Bell, Sparkle, Arcade and Wood tap. Each can be previewed; the master sound switch remains available and is saved on the device.
+- Moved customer Notifications and Returns & Exchanges under the My Account dropdown / drawer group. Admin Alerts and Returns management remain in admin navigation.
+- Removed all “Move the menu button” controls. Menu placement now follows the selected website look, with Fresh Pop set to top-left.
+- Kept the website appearance chooser available to admins and customers, and updated help text and styling.

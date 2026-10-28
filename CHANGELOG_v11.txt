@@ -1,0 +1,22 @@
+Shreejee Fashion v11.0 — Website editor and order integrity
+===========================================================
+
+- Required customer authentication before an item is added to cart. Guest add-to-cart stores a one-time selected product/mode/quantity/size handoff in the signed session and returns to the user's local page after login/registration.
+- Added status/payment timestamps and order_status_history migration for existing databases.
+- Order confirmation codes are order-scoped, one-time, unique across the orders table, compared securely, and limited to ten failed attempts. Invalid code attempts do not confirm an order.
+- Fixed SQLite write-lock issue by writing payment/delivery notifications in the existing order transaction.
+- COD/store QR code confirmation marks Confirmed only. Admin must separately record received payment and confirm physical handover to mark Delivered. Delivered/Completed orders cannot be edited through status controls; status/payment events are timestamped.
+- Homepage hero is rendered only on the true homepage; Shop/browse, Buy, Rent and category views show their product content without the repeated hero.
+- Last Order panel uses the signed-in user's latest database order. Individual status/payment fields poll protected API endpoints and are updated without a full page reload.
+- Background synchronization for published site settings, product information, categories and product catalogue.
+- Expanded the Website Editor: safe internal navigation destinations, category order, story fields, typography, colors/gradient, card/spacing controls, drafts/publish, reset/cancel actions, image previews and persistent DB settings.
+- Replaced the predictable fallback session secret with a private generated persistent secret file (unless SHREEJEE_SECRET_KEY is set); existing administrator password hashes are no longer reset on every server start. A blocked customer session is revoked immediately on the next request.
+- Validates uploaded image contents using Pillow in addition to extension and size checks.
+- Updated install and security documentation for the new behavior.
+
+Validation:
+- Python syntax compile: passed.
+- Browser JavaScript syntax check: passed.
+- Jinja parsing: passed for 22 templates.
+- Isolated SQLite logic tests: passed for pending-cart one-time handoff, invalid/valid confirmation code, requiring payment and customer receipt before Delivered, locking Delivered, order history, navigation URL sanitization, and session secret generation.
+- Live Flask/browser end-to-end test unavailable in the build environment because Flask/Werkzeug were not installed and package downloads were blocked. Install requirements.txt locally and test on a sample order before public use.
