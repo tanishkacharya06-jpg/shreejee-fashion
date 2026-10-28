@@ -247,6 +247,7 @@
   document.addEventListener('click',function(e){
     const back=e.target.closest('[data-back]');if(!back||e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;
     let sameSite=false;try{sameSite=!!document.referrer&&new URL(document.referrer).origin===location.origin;}catch(_){}
+    if(window.SFApp && typeof window.SFApp.goBack==='function'){e.preventDefault();window.SFApp.goBack();return;}
     if(sameSite&&history.length>1){e.preventDefault();history.back();}
   });
 
@@ -404,11 +405,29 @@
       else if(brandMark.querySelector('img')){brandMark.textContent=config.logo_text||'SF';brandMark.classList.remove('brand-image');}
       else if(config.logo_text)brandMark.textContent=config.logo_text;
     }
+    const remoteIconName=String(config.app_icon_filename||'').trim();
+    if(remoteIconName && /^[A-Za-z0-9_-]{1,80}\.(jpg|jpeg|png|webp)$/i.test(remoteIconName)){
+      const iconSrc='/static/uploads/'+encodeURIComponent(remoteIconName);
+      let iconLink=document.querySelector('link[data-remote-app-icon]');
+      if(!iconLink){iconLink=document.createElement('link');iconLink.rel='icon';iconLink.dataset.remoteAppIcon='true';document.head.appendChild(iconLink);}
+      if(!iconLink.href.endsWith(iconSrc))iconLink.href=iconSrc;
+      if(window.SFApp && typeof window.SFApp.updateRemoteAppIcon==='function'){
+        try{window.SFApp.updateRemoteAppIcon('/static/uploads/'+remoteIconName,config.site_name||'Shreejee Fashion');}catch(_){}
+      }
+    }
     const hero=document.querySelector('[data-home-hero]');if(hero)hero.hidden=config.hero_enabled===false;
     const art=document.querySelector('.hero-art');if(art&&config.hero_image)art.style.backgroundImage=`linear-gradient(135deg,rgba(29,48,39,.1),rgba(29,48,39,.02)),url("/static/uploads/${encodeURIComponent(config.hero_image)}")`;
   }
   async function refreshSiteSettings(){const url=document.body.dataset.settingsUrl;if(!url)return;try{const response=await fetch(url,{cache:'no-store',credentials:'same-origin'});if(!response.ok)return;const config=await response.json();const snapshot=JSON.stringify(config);if(snapshot!==siteSnapshot){siteSnapshot=snapshot;applySiteConfig(config);}}catch(_){}}
   refreshSiteSettings();setInterval(()=>{if(document.visibilityState==='visible')refreshSiteSettings();},30000);
+
+  document.getElementById('pinRemoteAppIcon')?.addEventListener('click',()=>{
+    if(window.SFApp && typeof window.SFApp.pinRemoteAppIcon==='function'){
+      window.SFApp.pinRemoteAppIcon();
+    }else{
+      alert('Open the Website Editor inside the Shreejee Fashion Android app, publish the remote icon image, then tap this button to pin the home-screen shortcut.');
+    }
+  });
 
   const catalog=document.getElementById('liveCatalogResults');
   async function refreshCatalog(){if(!catalog||!catalog.dataset.catalogUrl)return;try{const response=await fetch(catalog.dataset.catalogUrl,{cache:'no-store',credentials:'same-origin'});if(!response.ok)return;const html=await response.text();if(html.trim()!==catalog.innerHTML.trim())catalog.innerHTML=html;}catch(_){/* reconnect on next interval */}}

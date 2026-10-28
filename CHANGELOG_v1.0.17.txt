@@ -1,0 +1,6 @@
+Shreejee Fashion Android app — v1.0.17
+
+- Gallery/file picker hands WebView original Android content URIs instead of temporary file:// URIs.
+- Android Back skips stale login, registration and password-reset screens.
+- Added support for remotely refreshing a pinned home-screen shortcut icon from the store's published app-icon image.
+- Version code incremented to 6 for update installs.

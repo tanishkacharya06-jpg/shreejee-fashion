@@ -1,0 +1,7 @@
+Shreejee Fashion website/app fixes — v21
+
+- Fixed Android gallery selection by returning original content:// URIs to WebView instead of temporary file:// URIs after Done.
+- Made product images/names clickable in Admin > Manage Products > Catalogue and improved View/Edit/Hide/Publish/Delete controls.
+- Updated Android hardware Back and in-page Back to skip login/register/password-reset entries so stale authentication screens are not reopened.
+- Added a remote App Icon Image upload to Website Editor. Publishing updates the website favicon and in-app branding; admins can pin a home-screen shortcut once, and that shortcut image can then update from the published remote image.
+- Bumped Android app to v1.0.17 and static asset cache keys.

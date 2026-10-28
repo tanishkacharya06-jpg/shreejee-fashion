@@ -6,17 +6,21 @@ import android.content.ClipData
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.Icon
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.provider.OpenableColumns
 import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
-import android.webkit.MimeTypeMap
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -28,11 +32,13 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -49,7 +55,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var prefs: SharedPreferences
     private val io = Executors.newSingleThreadExecutor()
-    private val copier = Executors.newSingleThreadExecutor()
     private val ui = Handler(Looper.getMainLooper())
 
     private var shopHost: String = ""
@@ -79,11 +84,9 @@ class MainActivity : AppCompatActivity() {
             WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
         } else null
         if (parsed != null && parsed.isNotEmpty()) {
-            // Copy the picked photos into the app's own storage (proper file names, always readable by the page).
-            copier.execute {
-                val copied = copyPicked(parsed)
-                ui.post { cb?.onReceiveValue(if (copied.isEmpty()) parsed else copied) }
-            }
+            // Return the original content:// URIs. Copying them to file:// URIs can make
+            // Android gallery selections disappear from WebView's HTML file input after Done.
+            cb?.onReceiveValue(parsed)
         } else if (result.resultCode == RESULT_OK && camUri != null && camFile != null && camFile.exists() && camFile.length() > 0) {
             cb?.onReceiveValue(arrayOf(camUri)) // photo taken with the camera app
         } else {
@@ -242,7 +245,31 @@ class MainActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (!offlineShown && web.canGoBack()) web.goBack() else super.onBackPressed()
+        navigateBackSkippingAuthPages()
+    }
+
+    /** Skip stale login/register/reset entries left in WebView history after sign-in. */
+    private fun navigateBackSkippingAuthPages() {
+        if (offlineShown) {
+            super.onBackPressed()
+            return
+        }
+        val history = web.copyBackForwardList()
+        val current = history.currentIndex
+        var target = current - 1
+        while (target >= 0) {
+            val path = Uri.parse(history.getItemAtIndex(target).url).path.orEmpty().trimEnd('/')
+            val authPage = path in setOf(
+                "/login", "/login/otp", "/register", "/forgot-password",
+                "/reset-password", "/password-reset"
+            )
+            if (!authPage) {
+                web.goBackOrForward(target - current)
+                return
+            }
+            target--
+        }
+        if (current > 0) finish() else super.onBackPressed()
     }
 
     // ---------------------------------------------------------------- opening the shop (fast start)
@@ -343,40 +370,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Copies picked gallery photos to app storage with a proper name + extension; returns file:// URIs. */
-    private fun copyPicked(uris: Array<Uri>): Array<Uri> {
-        val root = File(cacheDir, "camera")
-        val out = ArrayList<Uri>()
-        val stamp = System.currentTimeMillis()
-        for ((i, u) in uris.withIndex()) {
-            try {
-                var display: String? = null
-                try {
-                    contentResolver.query(u, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
-                        if (c.moveToFirst()) display = c.getString(0)
-                    }
-                } catch (e: Exception) {
-                    // name unknown
-                }
-                val mime = contentResolver.getType(u)
-                var ext: String? = if (mime != null) MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) else null
-                if (ext.isNullOrBlank()) {
-                    val fromName = display?.substringAfterLast('.', "") ?: ""
-                    ext = if (fromName.length in 2..5) fromName.lowercase() else "jpg"
-                }
-                val base = (display?.substringBeforeLast('.') ?: "photo").replace(Regex("[^A-Za-z0-9._-]"), "_").take(60).ifBlank { "photo" }
-                val dir = File(root, "p${stamp}_$i")
-                dir.mkdirs()
-                val file = File(dir, "$base.$ext")
-                val input = contentResolver.openInputStream(u) ?: continue
-                input.use { ins -> file.outputStream().use { ins.copyTo(it) } }
-                if (file.length() > 0) out.add(Uri.fromFile(file))
-            } catch (e: Exception) {
-                // skip a photo that cannot be read
-            }
-        }
-        return out.toTypedArray()
-    }
-
     private fun withCameraPermission(block: (Boolean) -> Unit) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             block(true)
@@ -433,8 +426,114 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val remoteShortcutId = "shreejee-remote-app-icon"
+
+    private fun safeRemoteIconPath(path: String?): String? {
+        val value = path.orEmpty()
+        val prefix = "/static/uploads/"
+        if (!value.startsWith(prefix) || value.contains("..") || value.contains('?') || value.contains('#')) return null
+        val filename = value.removePrefix(prefix)
+        return if (filename.matches(Regex("^[A-Za-z0-9_-]{1,80}\\.(jpg|jpeg|png|webp)$", RegexOption.IGNORE_CASE))) value else null
+    }
+
+    @JavascriptInterface
+    fun updateRemoteAppIcon(path: String?, title: String?) {
+        val safePath = safeRemoteIconPath(path) ?: return
+        val safeTitle = title.orEmpty().trim().take(40).ifBlank { "Shreejee Fashion" }
+        val oldPath = prefs.getString("remote_app_icon_path", "") ?: ""
+        val oldTitle = prefs.getString("remote_app_icon_title", "") ?: ""
+        prefs.edit().putString("remote_app_icon_path", safePath).putString("remote_app_icon_title", safeTitle).apply()
+        if (oldPath != safePath || oldTitle != safeTitle) refreshRemoteShortcut(safePath, safeTitle, false)
+    }
+
+    /** Admin pins this once; future published images update the pinned shortcut remotely. */
+    @JavascriptInterface
+    fun pinRemoteAppIcon() {
+        val path = safeRemoteIconPath(prefs.getString("remote_app_icon_path", "")) ?: run {
+            ui.post { Toast.makeText(this, "Publish an app icon image first.", Toast.LENGTH_LONG).show() }
+            return
+        }
+        val title = prefs.getString("remote_app_icon_title", "Shreejee Fashion") ?: "Shreejee Fashion"
+        refreshRemoteShortcut(path, title, true)
+    }
+
+    private fun refreshRemoteShortcut(path: String, title: String, pinIfMissing: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            if (pinIfMissing) ui.post {
+                Toast.makeText(this, "Home-screen icon shortcuts require Android 8 or newer.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        io.execute {
+            val bitmap = fetchRemoteIconBitmap(path) ?: return@execute
+            ui.post {
+                try {
+                    if (isFinishing || isDestroyed) return@post
+                    val manager = getSystemService(ShortcutManager::class.java) ?: return@post
+                    val shortcut = ShortcutInfo.Builder(this, remoteShortcutId)
+                        .setShortLabel(title.take(25).ifBlank { "Shreejee Fashion" })
+                        .setLongLabel(title)
+                        .setIcon(Icon.createWithBitmap(bitmap))
+                        .setIntent(Intent(this, MainActivity::class.java).apply {
+                            action = Intent.ACTION_MAIN
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        })
+                        .build()
+                    if (manager.pinnedShortcuts.any { it.id == remoteShortcutId }) {
+                        manager.updateShortcuts(listOf(shortcut))
+                    } else if (pinIfMissing && manager.isRequestPinShortcutSupported) {
+                        manager.requestPinShortcut(shortcut, null)
+                    } else if (pinIfMissing) {
+                        Toast.makeText(this, "This launcher does not support pinning shortcuts.", Toast.LENGTH_LONG).show()
+                    }
+                } catch (_: Exception) {
+                    if (pinIfMissing) Toast.makeText(this, "Could not update the home-screen shortcut.", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun fetchRemoteIconBitmap(path: String): Bitmap? {
+        val base = currentBase ?: return null
+        val connection = try {
+            (URL(base.trimEnd('/') + path).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 7000
+                readTimeout = 7000
+                requestMethod = "GET"
+                setRequestProperty("User-Agent", "ShreejeeFashionApp")
+                setRequestProperty("Accept", "image/png,image/jpeg,image/webp")
+            }
+        } catch (_: Exception) { return null }
+        return try {
+            if (connection.responseCode != 200) return null
+            if (connection.contentLengthLong > 8L * 1024 * 1024) return null
+            val output = ByteArrayOutputStream()
+            connection.inputStream.use { input ->
+                val buffer = ByteArray(8192)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    if (output.size() + count > 8 * 1024 * 1024) return null
+                    output.write(buffer, 0, count)
+                }
+            }
+            val bytes = output.toByteArray()
+            val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
+            val longest = maxOf(decoded.width, decoded.height)
+            if (longest <= 192) decoded else {
+                val ratio = 192f / longest.toFloat()
+                val scaled = Bitmap.createScaledBitmap(decoded, maxOf(1, (decoded.width * ratio).toInt()), maxOf(1, (decoded.height * ratio).toInt()), true)
+                if (scaled !== decoded) decoded.recycle()
+                scaled
+            }
+        } catch (_: Exception) {
+            null
+        } finally {
+            connection.disconnect()
+        }
+    }
+
     inner class Bridge {
-        /** Called by the website on every page so the offline page can match the customer's look. */
         @JavascriptInterface
         fun setTheme(theme: String?) {
             val t = theme.orEmpty()
@@ -443,10 +542,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        /** Called by the "Try again" button on the offline page. */
         @JavascriptInterface
         fun retry() {
             ui.post { connect() }
+        }
+
+        @JavascriptInterface
+        fun goBack() {
+            ui.post { navigateBackSkippingAuthPages() }
         }
     }
 }

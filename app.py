@@ -153,7 +153,7 @@ STORE = {
 }
 
 SITE_EDITOR_DEFAULTS = {
-    'site_name': 'Shreejee Fashion', 'logo_text': 'SF', 'logo_filename': '', 'hero_image': '',
+    'site_name': 'Shreejee Fashion', 'logo_text': 'SF', 'logo_filename': '', 'app_icon_filename': '', 'hero_image': '',
     'owner': 'Rupali Acharya',
     'address': STORE['address'], 'phone': '', 'hours': 'Contact the store for current hours',
     'since': '2021', 'announcement': 'Welcome to Shreejee Fashion — styles for the whole family.',
@@ -3168,7 +3168,7 @@ def admin_website_editor():
             flash('Website editor restored to default settings.', 'success')
             return redirect(url_for('admin_website_editor'))
         config = clean_settings(request.form, get_site_config(draft=True))
-        for field, key in [('logo_image', 'logo_filename'), ('hero_image_upload', 'hero_image')]:
+        for field, key in [('logo_image', 'logo_filename'), ('app_icon_upload', 'app_icon_filename'), ('hero_image_upload', 'hero_image')]:
             upload = request.files.get(field)
             if upload and upload.filename:
                 try:
