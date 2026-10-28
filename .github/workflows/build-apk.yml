@@ -5,6 +5,8 @@ on:
     paths:
       - 'android-app/**'
       - '.github/workflows/build-apk.yml'
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,3 +28,12 @@ jobs:
         with:
           name: ShreejeeFashion-apk
           path: android-app/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish APK as a GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk ShreejeeFashion.apk
+          gh release create "apk-build-${{ github.run_number }}" ShreejeeFashion.apk \
+            --title "Shreejee Fashion APK (build ${{ github.run_number }})" \
+            --notes "Debug APK. Download ShreejeeFashion.apk, uninstall the old app first, then install." \
+            --latest
