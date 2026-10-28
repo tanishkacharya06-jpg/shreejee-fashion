@@ -1,0 +1,5 @@
+Shreejee Fashion Android app — v1.0.18
+
+- More reliable gallery single/multiple-selection return to the product image input.
+- Remote home-screen shortcut icon updates retry after temporary network failures.
+- Improved Android Back history handling to skip stale login/reset and completed create/edit pages.

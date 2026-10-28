@@ -80,15 +80,25 @@ class MainActivity : AppCompatActivity() {
         val camUri = cameraUri
         cameraFile = null
         cameraUri = null
-        val parsed = if (result.resultCode == RESULT_OK) {
-            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-        } else null
-        if (parsed != null && parsed.isNotEmpty()) {
-            // Return the original content:// URIs. Copying them to file:// URIs can make
-            // Android gallery selections disappear from WebView's HTML file input after Done.
-            cb?.onReceiveValue(parsed)
+        val selectedUris = linkedSetOf<Uri>()
+        if (result.resultCode == RESULT_OK) {
+            // Picker providers differ: single selection returns data; multi-select may use ClipData.
+            val data = result.data
+            data?.clipData?.let { clip ->
+                for (index in 0 until clip.itemCount) clip.getItemAt(index).uri?.let { selectedUris.add(it) }
+            }
+            data?.data?.let { selectedUris.add(it) }
+            try {
+                WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
+                    ?.forEach { selectedUris.add(it) }
+            } catch (_: Exception) {
+                // Keep the direct data / ClipData URIs if the helper cannot parse this provider.
+            }
+        }
+        if (selectedUris.isNotEmpty()) {
+            cb?.onReceiveValue(selectedUris.toTypedArray())
         } else if (result.resultCode == RESULT_OK && camUri != null && camFile != null && camFile.exists() && camFile.length() > 0) {
-            cb?.onReceiveValue(arrayOf(camUri)) // photo taken with the camera app
+            cb?.onReceiveValue(arrayOf(camUri))
         } else {
             cb?.onReceiveValue(null)
         }
@@ -248,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         navigateBackSkippingAuthPages()
     }
 
-    /** Skip stale login/register/reset entries left in WebView history after sign-in. */
+    /** Skip authentication and completed edit forms so Back doesn't reopen stale workflows. */
     private fun navigateBackSkippingAuthPages() {
         if (offlineShown) {
             super.onBackPressed()
@@ -258,18 +268,24 @@ class MainActivity : AppCompatActivity() {
         val current = history.currentIndex
         var target = current - 1
         while (target >= 0) {
-            val path = Uri.parse(history.getItemAtIndex(target).url).path.orEmpty().trimEnd('/')
-            val authPage = path in setOf(
-                "/login", "/login/otp", "/register", "/forgot-password",
-                "/reset-password", "/password-reset"
-            )
-            if (!authPage) {
+            if (!shouldSkipBackEntry(history.getItemAtIndex(target).url)) {
                 web.goBackOrForward(target - current)
                 return
             }
             target--
         }
         if (current > 0) finish() else super.onBackPressed()
+    }
+
+    private fun shouldSkipBackEntry(url: String): Boolean {
+        val uri = Uri.parse(url)
+        val path = uri.path.orEmpty().trimEnd('/').ifBlank { "/" }
+        if (uri.scheme == "about") return true
+        if (path in setOf(
+                "/login", "/login/otp", "/register", "/forgot-password",
+                "/reset-password", "/password-reset", "/logout", "/admin/products/new"
+            )) return true
+        return Regex("^/admin/products/\\d+/(edit|delete|toggle)$").matches(path)
     }
 
     // ---------------------------------------------------------------- opening the shop (fast start)
@@ -402,25 +418,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Opens the gallery / file picker. */
+    /** Opens the Android picker using the HTML input's accepted types and multiple mode. */
     private fun launchGallery(p: WebChromeClient.FileChooserParams?) {
         val types = p?.acceptTypes?.filter { it.isNotBlank() } ?: emptyList()
-        val imageOnly = types.isNotEmpty() && types.all { it.startsWith("image") || it.startsWith(".") }
-        val own: Intent? = if (imageOnly) null else try {
+        val imageOnly = types.isEmpty() || types.any { it.startsWith("image") || it.startsWith(".") }
+        val intent = try {
             p?.createIntent()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
-        }
-        val intent: Intent = own ?: Intent(Intent.ACTION_GET_CONTENT).apply {
+        } ?: Intent(Intent.ACTION_GET_CONTENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = if (imageOnly || types.isEmpty()) "image/*" else "*/*"
-            if (p != null && p.mode == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) {
-                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            }
+            type = if (imageOnly) "image/*" else "*/*"
         }
+        // Preserve multiple selection even when a vendor's picker ignores createIntent().
+        if (p?.mode == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) {
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        }
+        if (imageOnly && (intent.type.isNullOrBlank() || intent.type == "*/*")) intent.type = "image/*"
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         try {
             chooserLauncher.launch(intent)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             fileCallback?.onReceiveValue(null)
             fileCallback = null
         }
@@ -440,10 +458,12 @@ class MainActivity : AppCompatActivity() {
     fun updateRemoteAppIcon(path: String?, title: String?) {
         val safePath = safeRemoteIconPath(path) ?: return
         val safeTitle = title.orEmpty().trim().take(40).ifBlank { "Shreejee Fashion" }
-        val oldPath = prefs.getString("remote_app_icon_path", "") ?: ""
-        val oldTitle = prefs.getString("remote_app_icon_title", "") ?: ""
+        val loadedPath = prefs.getString("remote_app_icon_loaded_path", "") ?: ""
+        val loadedTitle = prefs.getString("remote_app_icon_loaded_title", "") ?: ""
+        // Keep the chosen URL for the pin button but mark it loaded only after fetch succeeds.
+        // A temporary tunnel failure therefore retries on the next settings refresh.
         prefs.edit().putString("remote_app_icon_path", safePath).putString("remote_app_icon_title", safeTitle).apply()
-        if (oldPath != safePath || oldTitle != safeTitle) refreshRemoteShortcut(safePath, safeTitle, false)
+        if (loadedPath != safePath || loadedTitle != safeTitle) refreshRemoteShortcut(safePath, safeTitle, false)
     }
 
     /** Admin pins this once; future published images update the pinned shortcut remotely. */
@@ -465,7 +485,18 @@ class MainActivity : AppCompatActivity() {
             return
         }
         io.execute {
-            val bitmap = fetchRemoteIconBitmap(path) ?: return@execute
+            val bitmap = fetchRemoteIconBitmap(path) ?: run {
+                if (pinIfMissing) ui.post {
+                    Toast.makeText(this, "Could not download the app icon. Check the shop connection and try again.", Toast.LENGTH_LONG).show()
+                }
+                return@execute
+            }
+            prefs.edit()
+                .putString("remote_app_icon_path", path)
+                .putString("remote_app_icon_title", title)
+                .putString("remote_app_icon_loaded_path", path)
+                .putString("remote_app_icon_loaded_title", title)
+                .apply()
             ui.post {
                 try {
                     if (isFinishing || isDestroyed) return@post

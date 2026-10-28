@@ -481,14 +481,18 @@
     const all=[...selectedUploadFiles];
     const acceptedExts=['jpg','jpeg','png','webp','heic','heif','avif'];
     const acceptedMimes=['image/jpeg','image/jpg','image/png','image/webp','image/heic','image/heif','image/avif'];
+    const nonImageMimes=['application/pdf','application/zip','application/x-zip-compressed','text/plain','video/mp4','video/quicktime','audio/mpeg'];
     for(const file of incoming){
-      const ext=(String(file.name||'').split('.').pop()||'').toLowerCase();
+      const name=String(file.name||'');
+      const ext=(name.split('.').pop()||'').toLowerCase();
       const mime=String(file.type||'').toLowerCase().split(';')[0].trim();
       const acceptedByName=acceptedExts.includes(ext);
       const acceptedByType=acceptedMimes.includes(mime);
-      // Android photo pickers sometimes return a generic/no-extension file name or MIME type.
-      // Accept a recognised image MIME or a known image extension, then validate bytes server-side.
-      if((!acceptedByName&&!acceptedByType)||(mime&&!mime.startsWith('image/')&&!acceptedByName)){
+      const genericType=!mime||mime==='application/octet-stream'||mime==='binary/octet-stream';
+      // Android gallery providers may return a photo with a generic MIME type/name.
+      // Let those through to image decoding during compression instead of silently rejecting them.
+      if(nonImageMimes.includes(mime)||(!acceptedByName&&!acceptedByType&&!genericType)||
+         (mime&&!mime.startsWith('image/')&&!genericType&&!acceptedByName)){
         alert('Please choose a JPG, PNG, WebP or supported phone photo.');return;
       }
       if(file.size>32*1024*1024){alert('Each original photo must be smaller than 32 MB so it can be prepared in your browser.');return;}
@@ -498,7 +502,7 @@
     if(all.length>8){alert('Choose no more than 8 photos per product.');return;}
     selectedUploadFiles=all;
     showFiles(selectedUploadFiles);
-    // Clear native file inputs so the same photo can be picked again after removal if needed.
+    if(state)state.textContent='Photos selected. Save the product to upload them.';
     if(input)input.value='';if(cameraInput)cameraInput.value='';
   }
   input?.addEventListener('change',()=>addUploadFiles(input.files));
@@ -742,5 +746,24 @@
     btn?.addEventListener('click',run);
     input?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();run();}});
     if(input&&input.value.length===6)run();
+  });
+})();
+
+
+// Make catalogue product rows themselves clickable without hijacking action buttons.
+(function(){
+  document.querySelectorAll('[data-catalog-row][data-catalog-url]').forEach(row=>{
+    row.addEventListener('click',event=>{
+      if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      if(event.target.closest('a,button,form,input,select,textarea,label,[data-no-row-nav]'))return;
+      const target=row.dataset.catalogUrl;
+      if(target)window.location.assign(target);
+    });
+    row.addEventListener('keydown',event=>{
+      if(event.target!==row||!(event.key==='Enter'||event.key===' '))return;
+      event.preventDefault();
+      const target=row.dataset.catalogUrl;
+      if(target)window.location.assign(target);
+    });
   });
 })();
