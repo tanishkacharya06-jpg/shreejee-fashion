@@ -1,0 +1,4 @@
+v1.0.15
+1. Faster: pages are gzip-compressed, static files cached for a week, background refreshes are gentler (2-15 s became 6-60 s).
+2. Android app: nice 'Shreejee Fashion' dialogs instead of 'The page at https://...' boxes.
+3. Android app: picked gallery photos are copied into the app with a proper file name/extension before upload.

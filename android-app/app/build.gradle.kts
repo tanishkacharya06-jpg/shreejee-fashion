@@ -10,8 +10,8 @@ android {
         applicationId = "com.shreejee.fashion"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
         // ===== EDIT THESE THREE LINES =====
         // 1) Your Gist id (the long code at the end of your Gist's web address).
         buildConfigField("String", "GIST_ID", "\"f8600735ea36e813d7828271e8f31c9b\"")

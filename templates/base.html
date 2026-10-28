@@ -6,9 +6,9 @@
   <script>try{if(localStorage.getItem("sf_taskbar_hidden")==="1")document.documentElement.classList.add("sf-taskbar-hidden")}catch(_){}</script>
   <meta name="description" content="{{ site_config.site_name }} — family fashion for boys, girls and kids since {{ store.since }}.">
   <title>{% block title %}{{ store.name }}{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.14">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.15">
   <style>:root{ {{ site_css_vars|safe }} } body{font-size:var(--base-font-size,14px);{% if site_config.background_mode == 'soft-gradient' %}background:linear-gradient(135deg,{{ site_config.page_background }},{{ site_config.gradient_end }}) fixed;{% endif %}} .btn{border-radius:var(--button-radius,3px)} .panel,.product-card,.checkout-card,.last-order-strip{border-radius:var(--card-radius,0px)} .product-grid{gap:var(--card-gap,22px)} .hero h1{font-size:calc(clamp(49px,5.4vw,78px)*var(--heading-scale,1))} .hero-art{ {% if site_config.hero_image %}background-image:url('{{ url_for('static', filename='uploads/' + site_config.hero_image) }}');background-size:cover;background-position:center;{% endif %} }</style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='layouts.css') }}?v=1.0.14">
+  <link rel="stylesheet" href="{{ url_for('static', filename='layouts.css') }}?v=1.0.15">
   {% block head %}{% endblock %}
 </head>
 <body class="button-style-{{ site_config.button_style }}{{ ' no-taskbar' if hide_taskbar }}" data-ui="{{ ui_layout }}" data-ui-chosen="{{ 1 if ui_chosen else 0 }}" data-menu-pos="{{ menu_pos }}" data-menu-side="{{ menu_side }}" data-menu-default="{{ ui_layouts[ui_layout].menu }}" data-settings-url="{{ url_for('api_site_settings') }}" data-user-role="{{ current_user['role'] if current_user else 'guest' }}" data-admin-order-snapshot="{{ admin_order_snapshot|default('') }}">
@@ -148,7 +148,7 @@
     {% endif %}
   </nav>
   {% endif %}
-  <script src="{{ url_for('static', filename='app.js') }}?v=1.0.14"></script>
+  <script src="{{ url_for('static', filename='app.js') }}?v=1.0.15"></script>
   <script>try{if(window.SFApp&&SFApp.setTheme)SFApp.setTheme(document.body.dataset.ui||'classic')}catch(_){}</script>
   {% block scripts %}{% endblock %}
 </body></html>

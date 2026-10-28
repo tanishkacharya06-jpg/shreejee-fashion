@@ -73,6 +73,34 @@ app.config['MAX_CONTENT_LENGTH'] = 72 * 1024 * 1024  # room for multipart overhe
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('COOKIE_SECURE', '0') == '1'
+# Speed: static files are versioned with ?v=..., so browsers/the Android app may cache them for a week.
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(days=7)
+
+
+@app.after_request
+def gzip_text_responses(response):
+    """Compress HTML/CSS/JS/JSON so pages load much faster through the Cloudflare tunnel on phones."""
+    try:
+        if response.status_code != 200 or 'Content-Encoding' in response.headers:
+            return response
+        if 'gzip' not in request.headers.get('Accept-Encoding', '').lower():
+            return response
+        mimetype = response.mimetype or ''
+        if not (mimetype.startswith('text/') or mimetype in ('application/json', 'application/javascript', 'image/svg+xml')):
+            return response
+        response.direct_passthrough = False
+        data = response.get_data()
+        if len(data) < 600:
+            return response
+        import gzip as _gzip
+        packed = _gzip.compress(data, compresslevel=6)
+        response.set_data(packed)
+        response.headers['Content-Encoding'] = 'gzip'
+        response.headers['Content-Length'] = str(len(packed))
+        response.headers.add('Vary', 'Accept-Encoding')
+    except Exception:
+        pass
+    return response
 
 
 def external_store_url(path):

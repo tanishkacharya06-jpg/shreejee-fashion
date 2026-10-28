@@ -341,7 +341,7 @@
       }catch(_){/* temporary network issue; next poll retries */}
     }));
   }
-  refreshOrderStatus();setInterval(()=>{if(document.visibilityState==='visible')refreshOrderStatus();},2500);
+  refreshOrderStatus();setInterval(()=>{if(document.visibilityState==='visible')refreshOrderStatus();},6000);
 
   // Admin order queues refresh automatically when a customer places an order or an existing order changes.
   (function watchAdminOrders(){
@@ -360,7 +360,7 @@
         if(data.ok&&data.snapshot&&data.snapshot!==base){window.location.reload();}
       }catch(_){/* retry next poll */}
     }
-    setInterval(check,2000);
+    setInterval(check,6000);
     setTimeout(check,500);
   })();
 
@@ -408,11 +408,11 @@
     const art=document.querySelector('.hero-art');if(art&&config.hero_image)art.style.backgroundImage=`linear-gradient(135deg,rgba(29,48,39,.1),rgba(29,48,39,.02)),url("/static/uploads/${encodeURIComponent(config.hero_image)}")`;
   }
   async function refreshSiteSettings(){const url=document.body.dataset.settingsUrl;if(!url)return;try{const response=await fetch(url,{cache:'no-store',credentials:'same-origin'});if(!response.ok)return;const config=await response.json();const snapshot=JSON.stringify(config);if(snapshot!==siteSnapshot){siteSnapshot=snapshot;applySiteConfig(config);}}catch(_){}}
-  refreshSiteSettings();setInterval(()=>{if(document.visibilityState==='visible')refreshSiteSettings();},6000);
+  refreshSiteSettings();setInterval(()=>{if(document.visibilityState==='visible')refreshSiteSettings();},30000);
 
   const catalog=document.getElementById('liveCatalogResults');
   async function refreshCatalog(){if(!catalog||!catalog.dataset.catalogUrl)return;try{const response=await fetch(catalog.dataset.catalogUrl,{cache:'no-store',credentials:'same-origin'});if(!response.ok)return;const html=await response.text();if(html.trim()!==catalog.innerHTML.trim())catalog.innerHTML=html;}catch(_){/* reconnect on next interval */}}
-  if(catalog){setInterval(()=>{if(document.visibilityState==='visible')refreshCatalog();},15000);}
+  if(catalog){setInterval(()=>{if(document.visibilityState==='visible')refreshCatalog();},30000);}
 
   // Prevent accidental duplicate form submissions throughout the store.
 
@@ -556,7 +556,7 @@
       document.title=data.name+' | '+(document.querySelector('[data-site-key="site_name"]')?.textContent||'Shreejee Fashion');
     }catch(_){/* temporary network loss, retry shortly */}
   }
-  if(detailRoot){refreshProductDetail();setInterval(()=>{if(document.visibilityState==='visible')refreshProductDetail();},7000);}
+  if(detailRoot){refreshProductDetail();setInterval(()=>{if(document.visibilityState==='visible')refreshProductDetail();},15000);}
 
   const categoryFilters=document.getElementById('catalogCategoryFilters');
   async function refreshCategories(){
@@ -582,7 +582,7 @@
       categoryFilters.replaceChildren(...fixed,...ordered);
     }catch(_){/* next poll retries */}
   }
-  refreshCategories();setInterval(()=>{if(document.visibilityState==='visible')refreshCategories();},15000);
+  refreshCategories();setInterval(()=>{if(document.visibilityState==='visible')refreshCategories();},60000);
 })();
 
 // ---- v1.0.4: appearance preferences page and mobile-friendly Fresh Pop taskbar ----

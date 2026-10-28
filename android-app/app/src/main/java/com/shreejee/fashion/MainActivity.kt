@@ -11,8 +11,12 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
+import android.webkit.MimeTypeMap
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -23,6 +27,8 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -43,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var prefs: SharedPreferences
     private val io = Executors.newSingleThreadExecutor()
+    private val copier = Executors.newSingleThreadExecutor()
     private val ui = Handler(Looper.getMainLooper())
 
     private var shopHost: String = ""
@@ -68,16 +75,20 @@ class MainActivity : AppCompatActivity() {
         val camUri = cameraUri
         cameraFile = null
         cameraUri = null
-        var uris: Array<Uri>? = null
-        if (result.resultCode == RESULT_OK) {
-            val parsed = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-            if (parsed != null && parsed.isNotEmpty()) {
-                uris = parsed
-            } else if (camUri != null && camFile != null && camFile.exists() && camFile.length() > 0) {
-                uris = arrayOf(camUri) // photo taken with the camera app
+        val parsed = if (result.resultCode == RESULT_OK) {
+            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+        } else null
+        if (parsed != null && parsed.isNotEmpty()) {
+            // Copy the picked photos into the app's own storage (proper file names, always readable by the page).
+            copier.execute {
+                val copied = copyPicked(parsed)
+                ui.post { cb?.onReceiveValue(if (copied.isEmpty()) parsed else copied) }
             }
+        } else if (result.resultCode == RESULT_OK && camUri != null && camFile != null && camFile.exists() && camFile.length() > 0) {
+            cb?.onReceiveValue(arrayOf(camUri)) // photo taken with the camera app
+        } else {
+            cb?.onReceiveValue(null)
         }
-        cb?.onReceiveValue(uris)
     }
 
     private val cameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -96,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         prefs = getSharedPreferences("sf", MODE_PRIVATE)
         try {
-            File(cacheDir, "camera").listFiles()?.forEach { it.delete() }
+            File(cacheDir, "camera").deleteRecursively()
         } catch (e: Exception) {
             // ignore
         }
@@ -128,6 +139,35 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     launchGallery(p)
                 }
+                return true
+            }
+
+            // Nice native dialogs instead of Android's "The page at https://..." boxes.
+            override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+                val r = result ?: return false
+                showJsDialog(message, false, r)
+                return true
+            }
+
+            override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+                val r = result ?: return false
+                showJsDialog(message, true, r)
+                return true
+            }
+
+            override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
+                val r = result ?: return false
+                if (isFinishing) { r.cancel(); return true }
+                val input = EditText(this@MainActivity)
+                input.setText(defaultValue.orEmpty())
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.app_name)
+                    .setMessage(message.orEmpty())
+                    .setView(input)
+                    .setPositiveButton("OK") { _, _ -> r.confirm(input.text.toString()) }
+                    .setNegativeButton("Cancel") { _, _ -> r.cancel() }
+                    .setOnCancelListener { r.cancel() }
+                    .show()
                 return true
             }
 
@@ -287,6 +327,55 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ---------------------------------------------------------------- camera + gallery
+
+    private fun showJsDialog(message: String?, withCancel: Boolean, result: JsResult) {
+        if (isFinishing) {
+            result.cancel()
+            return
+        }
+        val builder = AlertDialog.Builder(this)
+            .setTitle(R.string.app_name)
+            .setMessage(message.orEmpty())
+            .setPositiveButton("OK") { _, _ -> result.confirm() }
+            .setOnCancelListener { result.cancel() }
+        if (withCancel) builder.setNegativeButton("Cancel") { _, _ -> result.cancel() }
+        builder.show()
+    }
+
+    /** Copies picked gallery photos to app storage with a proper name + extension; returns file:// URIs. */
+    private fun copyPicked(uris: Array<Uri>): Array<Uri> {
+        val root = File(cacheDir, "camera")
+        val out = ArrayList<Uri>()
+        val stamp = System.currentTimeMillis()
+        for ((i, u) in uris.withIndex()) {
+            try {
+                var display: String? = null
+                try {
+                    contentResolver.query(u, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+                        if (c.moveToFirst()) display = c.getString(0)
+                    }
+                } catch (e: Exception) {
+                    // name unknown
+                }
+                val mime = contentResolver.getType(u)
+                var ext: String? = if (mime != null) MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) else null
+                if (ext.isNullOrBlank()) {
+                    val fromName = display?.substringAfterLast('.', "") ?: ""
+                    ext = if (fromName.length in 2..5) fromName.lowercase() else "jpg"
+                }
+                val base = (display?.substringBeforeLast('.') ?: "photo").replace(Regex("[^A-Za-z0-9._-]"), "_").take(60).ifBlank { "photo" }
+                val dir = File(root, "p${stamp}_$i")
+                dir.mkdirs()
+                val file = File(dir, "$base.$ext")
+                val input = contentResolver.openInputStream(u) ?: continue
+                input.use { ins -> file.outputStream().use { ins.copyTo(it) } }
+                if (file.length() > 0) out.add(Uri.fromFile(file))
+            } catch (e: Exception) {
+                // skip a photo that cannot be read
+            }
+        }
+        return out.toTypedArray()
+    }
 
     private fun withCameraPermission(block: (Boolean) -> Unit) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
