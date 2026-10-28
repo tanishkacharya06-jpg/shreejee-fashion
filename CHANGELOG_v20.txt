@@ -1,0 +1,8 @@
+Shreejee Fashion website fixes — v20
+
+- Removed the standalone Delivery PIN code checker from the cart; checkout still keeps the delivery address.
+- Allowed signed-in store admins to publish/update a store review on active products without being shown the customer login prompt.
+- Set Fresh Pop as the initial storefront theme, including a one-time migration for existing Classic defaults; later owner theme selections remain respected.
+- Made gallery image intake accept valid image MIME types when Android supplies generic names/extensions, and normalised MIME-known filenames before upload.
+- Validate uploaded image bytes and store by the actual JPEG/PNG/WebP format instead of trusting gallery filenames.
+- Replaced the Shop dock glyph with a detailed storefront SVG and bumped static asset cache keys.

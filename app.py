@@ -181,7 +181,7 @@ SITE_EDITOR_DEFAULTS = {
     'story_eyebrow': 'OUR STORY', 'story_heading': 'A little style.', 'story_emphasis': 'A lot of heart.',
     'story_description': 'Family fashion, selected with care and made for everyday life.',
     'category_order': 'Boys Wear, Girls Wear, Kids Wear, Chaniya Choli, Lehenga Choli, Anarkali Kurtas, Jewelry / Accessories, Lehenga, Blouse',
-    'font_family': 'DM Sans', 'base_font_size': 14, 'heading_scale': 1.0, 'button_style': 'solid', 'background_mode': 'solid', 'gradient_end': '#ebe7dd', 'default_ui': 'classic',
+    'font_family': 'DM Sans', 'base_font_size': 14, 'heading_scale': 1.0, 'button_style': 'solid', 'background_mode': 'solid', 'gradient_end': '#ebe7dd', 'default_ui': 'fresh',
     'primary_color': '#1c3d31', 'accent_color': '#c7854a', 'text_color': '#202923',
     'page_background': '#f8f6f0', 'card_background': '#fffdf8', 'button_radius': 3, 'card_radius': 0, 'card_gap': 22,
     'product_button_order': 'buy,rent,cart,save,whatsapp,review', 'product_button_hidden': '',
@@ -241,6 +241,25 @@ def get_site_config(draft=False):
     key = 'site_editor_draft' if draft else 'site_editor_published'
     try:
         with db() as con:
+            # One-time migration: make Fresh Pop the initial published/draft theme.
+            # The marker prevents later owner-selected themes (including Classic) being overwritten.
+            migration_key = 'migration_default_ui_fresh_pop_v1'
+            migrated = con.execute('SELECT value FROM site_settings WHERE key=?', (migration_key,)).fetchone()
+            if not migrated:
+                for config_key in ('site_editor_published', 'site_editor_draft'):
+                    saved_row = con.execute('SELECT value FROM site_settings WHERE key=?', (config_key,)).fetchone()
+                    if not saved_row:
+                        continue
+                    try:
+                        saved_config = json.loads(saved_row['value'])
+                    except (json.JSONDecodeError, TypeError):
+                        continue
+                    if isinstance(saved_config, dict) and saved_config.get('default_ui', 'classic') == 'classic':
+                        saved_config['default_ui'] = 'fresh'
+                        con.execute('UPDATE site_settings SET value=? WHERE key=?',
+                                    (json.dumps(saved_config, ensure_ascii=False), config_key))
+                con.execute('INSERT INTO site_settings(key,value) VALUES(?,?)',
+                            (migration_key, 'done'))
             row = con.execute('SELECT value FROM site_settings WHERE key=?', (key,)).fetchone()
         saved = json.loads(row['value']) if row else {}
         result = dict(SITE_EDITOR_DEFAULTS)
@@ -811,9 +830,9 @@ UI_LAYOUTS = {
 def resolve_ui_layout(user, site_config=None):
     """Resolve a visitor's chosen theme, falling back to the admin-published site default."""
     config = site_config if isinstance(site_config, dict) else get_site_config()
-    default_layout = str(config.get('default_ui', 'classic') or 'classic')
+    default_layout = str(config.get('default_ui', 'fresh') or 'fresh')
     if default_layout not in UI_LAYOUTS:
-        default_layout = 'classic'
+        default_layout = 'fresh'
     cookie_value = request.cookies.get('sf_ui', '')
     if user and user['role'] == 'admin':
         # Admin cookie is a private preview preference; the published default is used on fresh browsers.
@@ -1509,7 +1528,7 @@ def product_detail(product_id):
         reviews = con.execute('SELECT r.*,u.name AS reviewer_name FROM product_reviews r JOIN users u ON u.id=r.user_id WHERE r.product_id=? ORDER BY r.updated_at DESC LIMIT 100', (product_id,)).fetchall()
         own_review = None
         user = current_user()
-        if user and user['role'] == 'customer':
+        if user and user['role'] in ('customer', 'admin'):
             own_review = con.execute('SELECT * FROM product_reviews WHERE product_id=? AND user_id=?', (product_id, user['id'])).fetchone()
     if not product: abort(404)
     if customer_category_locked(product['category']) and not (user and user['role'] == 'admin'):
@@ -1522,11 +1541,11 @@ def product_detail(product_id):
 @login_required
 def product_review(product_id):
     user = current_user()
-    if not user or user['role'] != 'customer': abort(403)
+    if not user or user['role'] not in ('customer', 'admin'): abort(403)
     with db() as con:
         product = con.execute('SELECT id,category FROM products WHERE id=? AND active=1', (product_id,)).fetchone()
         if not product: abort(404)
-        if customer_category_locked(product['category']):
+        if customer_category_locked(product['category']) and user['role'] != 'admin':
             abort(404)
         try:
             rating = int(request.form.get('rating', '5'))
@@ -2335,29 +2354,29 @@ def admin_dashboard():
 def save_image(file_storage):
     if not file_storage or not file_storage.filename:
         return ''
-    original = secure_filename(file_storage.filename)
-    ext = original.rsplit('.', 1)[-1].lower() if '.' in original else ''
-    if ext not in ALLOWED_EXTENSIONS:
-        raise ValueError('Use a JPG, PNG, or WebP image.')
+    # Gallery providers sometimes supply generic or misleading names. Validate the
+    # actual image bytes, then choose the stored extension from the decoded format.
     data = file_storage.read()
     if not data:
         return ''
     if len(data) > MAX_IMAGE_BYTES:
         raise ValueError('Image is over 8 MB. Please choose a smaller photo.')
-    # Validate file contents as well as the extension; do not trust filenames from a browser.
+    image_format = ''
     try:
-        from PIL import Image, UnidentifiedImageError
+        from PIL import Image
         Image.MAX_IMAGE_PIXELS = 40_000_000
         with Image.open(io.BytesIO(data)) as uploaded_image:
-            if uploaded_image.format not in ('JPEG', 'PNG', 'WEBP'):
+            image_format = (uploaded_image.format or '').upper()
+            if image_format not in ('JPEG', 'PNG', 'WEBP'):
                 raise ValueError('Use a JPG, PNG, or WebP image.')
             uploaded_image.verify()
     except ValueError:
         raise
     except Exception as exc:
         raise ValueError('This file is not a valid JPG, PNG, or WebP image. Please choose a different photo.') from exc
+    extension = {'JPEG': 'jpg', 'PNG': 'png', 'WEBP': 'webp'}[image_format]
     # The browser compresses/resizes photos before upload; this server check keeps uploads bounded.
-    filename = secrets.token_hex(12) + '.' + ext
+    filename = secrets.token_hex(12) + '.' + extension
     path = os.path.join(UPLOAD_DIR, filename)
     with open(path, 'wb') as f:
         f.write(data)
@@ -3166,7 +3185,7 @@ def admin_website_editor():
             notify_users('Store website updated', 'Shreejee Fashion has published website changes and store information updates.')
             flash('Website changes published. Open customer pages will synchronize automatically.', 'success')
             response = redirect(url_for('admin_website_editor'))
-            default_ui = config.get('default_ui', 'classic')
+            default_ui = config.get('default_ui', 'fresh')
             if default_ui in UI_LAYOUTS:
                 response.set_cookie('sf_ui', default_ui, max_age=60 * 60 * 24 * 365, samesite='Lax', httponly=True, secure=app.config['SESSION_COOKIE_SECURE'])
             return response

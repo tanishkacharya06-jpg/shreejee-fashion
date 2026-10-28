@@ -460,10 +460,16 @@
   function addUploadFiles(fileList){
     const incoming=Array.from(fileList||[]);if(!incoming.length)return;
     const all=[...selectedUploadFiles];
+    const acceptedExts=['jpg','jpeg','png','webp','heic','heif','avif'];
+    const acceptedMimes=['image/jpeg','image/jpg','image/png','image/webp','image/heic','image/heif','image/avif'];
     for(const file of incoming){
-      const ext=(file.name.split('.').pop()||'').toLowerCase();
-      const acceptedExts=['jpg','jpeg','png','webp','heic','heif','avif'];
-      if((file.type&&!file.type.startsWith('image/'))||!acceptedExts.includes(ext)){
+      const ext=(String(file.name||'').split('.').pop()||'').toLowerCase();
+      const mime=String(file.type||'').toLowerCase().split(';')[0].trim();
+      const acceptedByName=acceptedExts.includes(ext);
+      const acceptedByType=acceptedMimes.includes(mime);
+      // Android photo pickers sometimes return a generic/no-extension file name or MIME type.
+      // Accept a recognised image MIME or a known image extension, then validate bytes server-side.
+      if((!acceptedByName&&!acceptedByType)||(mime&&!mime.startsWith('image/')&&!acceptedByName)){
         alert('Please choose a JPG, PNG, WebP or supported phone photo.');return;
       }
       if(file.size>32*1024*1024){alert('Each original photo must be smaller than 32 MB so it can be prepared in your browser.');return;}
@@ -490,8 +496,18 @@
   clear?.addEventListener('click',()=>{selectedUploadFiles=[];if(input)input.value='';if(cameraInput)cameraInput.value='';if(preview)preview.hidden=true;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;if(fileName)fileName.textContent='';if(fileSize)fileSize.textContent='';});
   async function compressFile(file){
     if(!file)return file;
-    const ext=(file.name.split('.').pop()||'').toLowerCase();
+    let name=String(file.name||'photo');
+    let ext=(name.split('.').pop()||'').toLowerCase();
+    const mime=String(file.type||'').toLowerCase().split(';')[0].trim();
     const serverTypes=['jpg','jpeg','png','webp'];
+    const mimeExtension=({'image/jpeg':'jpg','image/jpg':'jpg','image/png':'png','image/webp':'webp'})[mime]||'';
+    // Gallery providers can return a valid image without a usable extension; normalise it.
+    if(!serverTypes.includes(ext)&&mimeExtension){
+      const base=name.includes('.')?name.replace(/\.[^.]+$/,''):name;
+      name=(base||'photo')+'.'+mimeExtension;
+      file=new File([file],name,{type:mime,lastModified:file.lastModified||Date.now()});
+      ext=mimeExtension;
+    }
     const needsConversion=!serverTypes.includes(ext);
     if(!needsConversion&&file.size<450*1024)return file;
     if(!('createImageBitmap' in window)){
@@ -508,7 +524,8 @@
       ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
       const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.82));
       if(!blob){if(needsConversion)throw new Error('Your browser could not convert this phone photo. Please choose JPG, PNG or WebP.');return file;}
-      const output=new File([blob],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg',lastModified:Date.now()});
+      const outputName=String(file.name||'photo').replace(/\.[^.]+$/,'')+'.jpg';
+      const output=new File([blob],outputName,{type:'image/jpeg',lastModified:Date.now()});
       return (needsConversion||output.size<file.size||file.size>8*1024*1024)?output:file;
     }catch(err){
       if(needsConversion)throw new Error('Could not read this phone-photo format. Please choose JPG, PNG or WebP and try again.');

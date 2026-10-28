@@ -1,0 +1,4 @@
+Shreejee Fashion Android app — v1.0.16
+
+- Version metadata bumped to v1.0.16 so the latest fix build can install as an update.
+- Website-side gallery upload, cart PIN checker, admin review, Fresh Pop default, and storefront icon fixes are included in the repository commit.

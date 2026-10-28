@@ -6,9 +6,9 @@
   <script>try{if(localStorage.getItem("sf_taskbar_hidden")==="1")document.documentElement.classList.add("sf-taskbar-hidden")}catch(_){}</script>
   <meta name="description" content="{{ site_config.site_name }} — family fashion for boys, girls and kids since {{ store.since }}.">
   <title>{% block title %}{{ store.name }}{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.15">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.20">
   <style>:root{ {{ site_css_vars|safe }} } body{font-size:var(--base-font-size,14px);{% if site_config.background_mode == 'soft-gradient' %}background:linear-gradient(135deg,{{ site_config.page_background }},{{ site_config.gradient_end }}) fixed;{% endif %}} .btn{border-radius:var(--button-radius,3px)} .panel,.product-card,.checkout-card,.last-order-strip{border-radius:var(--card-radius,0px)} .product-grid{gap:var(--card-gap,22px)} .hero h1{font-size:calc(clamp(49px,5.4vw,78px)*var(--heading-scale,1))} .hero-art{ {% if site_config.hero_image %}background-image:url('{{ url_for('static', filename='uploads/' + site_config.hero_image) }}');background-size:cover;background-position:center;{% endif %} }</style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='layouts.css') }}?v=1.0.15">
+  <link rel="stylesheet" href="{{ url_for('static', filename='layouts.css') }}?v=1.0.20">
   {% block head %}{% endblock %}
 </head>
 <body class="button-style-{{ site_config.button_style }}{{ ' no-taskbar' if hide_taskbar }}" data-ui="{{ ui_layout }}" data-ui-chosen="{{ 1 if ui_chosen else 0 }}" data-menu-pos="{{ menu_pos }}" data-menu-side="{{ menu_side }}" data-menu-default="{{ ui_layouts[ui_layout].menu }}" data-settings-url="{{ url_for('api_site_settings') }}" data-user-role="{{ current_user['role'] if current_user else 'guest' }}" data-admin-order-snapshot="{{ admin_order_snapshot|default('') }}">
@@ -141,14 +141,14 @@
       <a href="{{ url_for('account') }}" class="{{ 'on' if request.path=='/account' }}"><span>{{ user_icon() }}</span><small>My Account</small></a>
     {% else %}
       <a href="{{ url_for('home') }}" class="{{ 'on' if request.path=='/' and not request.args.get('view') and not request.args.get('category') }}"><span>⌂</span><small>Home</small></a>
-      <a href="{{ url_for('home', browse='1') }}#catalog"><span>◧</span><small>Shop</small></a>
+      <a href="{{ url_for('home', browse='1') }}#catalog"><span class="shop-tab-icon" aria-hidden="true"><svg class="shop-icon" viewBox="0 0 48 48" width="24" height="24" fill="none" focusable="false" style="display:block"><path d="M9 20v22h30V20M5 19l4-12h30l4 12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M5 19c0 3.1 2.1 5 5 5s5-1.9 5-5c0 3.1 2.1 5 5 5s5-1.9 5-5c0 3.1 2.1 5 5 5s5-1.9 5-5c0 3.1 2.1 5 5 5s5-1.9 5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="13" y="28" width="9" height="10" rx="1" stroke="currentColor" stroke-width="2.2"/><path d="M15.8 33h3.4M28 28h7v14h-7zM30.5 32h2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 7v5m7-5v5m7-5v5m7-5v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".45"/></svg></span><small>Shop</small></a>
       {% if current_user %}<a href="{{ url_for('wishlist') }}"><span>♡</span><small>Saved</small></a>{% else %}<a href="{{ url_for('login') }}"><span>{{ user_icon() }}</span><small>Log in</small></a>{% endif %}
       <a href="{{ url_for('cart') }}" class="ui-bb-cart" aria-label="Open cart"><svg class="cart-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false"><path d="M5 7h5l4.4 22.2a4 4 0 0 0 3.9 3.2h16.9a4 4 0 0 0 3.8-2.8L43 15H13" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 20h23M18 26h19M22 16l1.2 13M32 16l-1.1 13" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="20" cy="39" r="3.2" fill="currentColor"/><circle cx="34" cy="39" r="3.2" fill="currentColor"/></svg><small>Cart</small><b class="ui-bb-badge" data-cart-badge {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</b></a>
       {% if current_user %}<a href="{{ url_for('account') }}"><span>{{ user_icon() }}</span><small>Account</small></a>{% endif %}
     {% endif %}
   </nav>
   {% endif %}
-  <script src="{{ url_for('static', filename='app.js') }}?v=1.0.15"></script>
-  <script>try{if(window.SFApp&&SFApp.setTheme)SFApp.setTheme(document.body.dataset.ui||'classic')}catch(_){}</script>
+  <script src="{{ url_for('static', filename='app.js') }}?v=1.0.20"></script>
+  <script>try{if(window.SFApp&&SFApp.setTheme)SFApp.setTheme(document.body.dataset.ui||'fresh')}catch(_){}</script>
   {% block scripts %}{% endblock %}
 </body></html>
